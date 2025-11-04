@@ -1,0 +1,1 @@
+# Store module for data persistence and caching

@@ -1,0 +1,1 @@
+# Learning module for template extraction and pattern recognition
