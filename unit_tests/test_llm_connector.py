@@ -46,10 +46,8 @@ class TestLLMConnector(unittest.TestCase):
         if text.strip():  # Only add metadata for non-empty elements
             metadata = Mock()
             coordinates = Mock()
-            point = Mock()
-            point.x = x
-            point.y = y
-            coordinates.points = [point]
+            # Simular a estrutura real onde points contém tuplas (x, y)
+            coordinates.points = [(x, y)]
             metadata.coordinates = coordinates
             element.metadata = metadata
         else:
@@ -163,6 +161,70 @@ class TestLLMConnector(unittest.TestCase):
         structured_text = connector._build_structured_text([element])
         
         self.assertEqual(structured_text, "Text without coordinates")
+    
+    def test_build_structured_text_coordinates_tuple_format(self):
+        """Test handling coordinates in tuple format (x, y)"""
+        connector = LLMConnector()
+        
+        # Create elements with coordinates as tuples - real format from unstructured
+        elements = []
+        
+        # Element 1: at (100, 50)
+        elem1 = Mock()
+        elem1.text = "Primeiro texto"
+        metadata1 = Mock()
+        coordinates1 = Mock()
+        coordinates1.points = [(100.0, 50.0)]  # Tuple format (x, y)
+        metadata1.coordinates = coordinates1
+        elem1.metadata = metadata1
+        elements.append(elem1)
+        
+        # Element 2: at (200, 50) - same line
+        elem2 = Mock()
+        elem2.text = "Segundo texto"
+        metadata2 = Mock()
+        coordinates2 = Mock()
+        coordinates2.points = [(200.0, 50.0)]  # Tuple format (x, y)
+        metadata2.coordinates = coordinates2
+        elem2.metadata = metadata2
+        elements.append(elem2)
+        
+        # Element 3: at (100, 100) - different line
+        elem3 = Mock()
+        elem3.text = "Terceiro texto"
+        metadata3 = Mock()
+        coordinates3 = Mock()
+        coordinates3.points = [(100.0, 100.0)]  # Tuple format (x, y)
+        metadata3.coordinates = coordinates3
+        elem3.metadata = metadata3
+        elements.append(elem3)
+        
+        structured_text = connector._build_structured_text(elements)
+        lines = structured_text.split('\n')
+        
+        # Should be ordered by Y first, then X
+        self.assertEqual(lines[0], "Primeiro texto Segundo texto")  # Y=50
+        self.assertEqual(lines[1], "Terceiro texto")  # Y=100
+    
+    def test_build_structured_text_coordinates_object_format_fallback(self):
+        """Test backward compatibility with object format coordinates"""
+        connector = LLMConnector()
+        
+        # Create element with coordinates as object (old format)
+        element = Mock()
+        element.text = "Texto com coordenadas objeto"
+        metadata = Mock()
+        coordinates = Mock()
+        point = Mock()
+        point.x = 150
+        point.y = 75
+        coordinates.points = [point]  # Object format
+        metadata.coordinates = coordinates
+        element.metadata = metadata
+        
+        structured_text = connector._build_structured_text([element])
+        
+        self.assertEqual(structured_text, "Texto com coordenadas objeto")
     
     @patch('core.connectors.llm_connector.partition_pdf')
     def test_parse_pdf_elements(self, mock_partition):

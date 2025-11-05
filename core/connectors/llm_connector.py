@@ -96,8 +96,13 @@ class LLMConnector:
                     # Pegar o primeiro ponto como referência
                     if coordinates.points:
                         point = coordinates.points[0]
-                        x = getattr(point, 'x', 0)
-                        y = getattr(point, 'y', 0)
+                        # Verificar se point é uma tupla (x, y) ou um objeto com atributos
+                        if isinstance(point, (tuple, list)) and len(point) >= 2:
+                            x, y = point[0], point[1]
+                        else:
+                            # Fallback para o formato de objeto (caso ainda seja usado)
+                            x = getattr(point, 'x', 0)
+                            y = getattr(point, 'y', 0)
             
             elements_data.append({
                 'text': elem.text.strip(),
