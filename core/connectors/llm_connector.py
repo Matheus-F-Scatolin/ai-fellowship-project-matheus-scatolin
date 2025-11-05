@@ -111,24 +111,34 @@ class LLMConnector:
         # Agrupar em linhas com tolerância para pequenas diferenças em y
         final_lines = []
         current_line = []
-        last_y = None
-        y_tolerance = 10
+        line_ref_y = None
+        y_tolerance = 5  # Tolerância em unidades de coordenada
         
         for elem in elements_data:
-            if last_y is None or abs(elem['y'] - last_y) <= y_tolerance:
-                current_line.append(elem['text'])
+            if not all(k in elem for k in ('text', 'x', 'y')):
+                raise ValueError("Elemento inválido: faltando 'text', 'x' ou 'y' chave.")
+            if line_ref_y is None:
+                # inicia primeira linha
+                current_line.append(elem)
+                line_ref_y = elem['y']
             else:
-                # Finalizar linha atual e começar nova
-                if current_line:
-                    final_lines.append(" ".join(current_line))
-                current_line = [elem['text']]
-            
-            last_y = elem['y']
-        
+                # compara com o y do primeiro elemento da linha atual
+                if abs(elem['y'] - line_ref_y) <= y_tolerance:
+                    current_line.append(elem)
+                else:
+                    # Finalizar linha atual e começar nova
+                    current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
+                    line_text = " ".join([e['text'] for e in current_line_sorted])
+                    final_lines.append(line_text)
+                    # Começar nova linha
+                    current_line = [elem]
+                    line_ref_y = elem['y']
+
         # Adicionar última linha
         if current_line:
-            final_lines.append(" ".join(current_line))
-        
+            current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
+            line_text = " ".join([e['text'] for e in current_line_sorted])
+            final_lines.append(line_text)
         return "\n".join(final_lines)
     
     def _generate_extraction_prompt(self, label: str, schema: Dict[str, str]) -> str:

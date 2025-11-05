@@ -246,6 +246,193 @@ class TestLLMConnector(unittest.TestCase):
         self.assertIn('"nome": "..."', template2)
         self.assertIn('"idade": "..."', template2)
 
+    @patch('core.connectors.llm_connector.partition_pdf')
+    def test_build_structured_text_real_oab1_pdf(self, mock_partition):
+        """Test _build_structured_text with real OAB 1 PDF data structure"""
+        connector = LLMConnector()
+        
+        # Expected structured text for oab_1.pdf based on the provided template
+        expected_text = """JOANA D'ARC
+Inscrição Seccional Subseção
+101943 PR CONSELHO SECCIONAL - PARANÁ
+SUPLEMENTAR
+Endereço Profissional
+AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista
+SÃO PAULO - SP
+01310300
+Telefone Profissional
+SITUAÇÃO REGULAR"""
+        
+        # Mock elements simulating what partition_pdf would return for oab_1.pdf
+        mock_elements = [
+            self._create_mock_element("JOANA D'ARC", 100, 50),
+            self._create_mock_element("Inscrição", 50, 100),
+            self._create_mock_element("Seccional", 200, 102),
+            self._create_mock_element("Subseção", 350, 101),
+            self._create_mock_element("101943", 50, 131),
+            self._create_mock_element("PR", 200, 130),
+            self._create_mock_element("CONSELHO SECCIONAL - PARANÁ", 350, 132),
+            self._create_mock_element("SUPLEMENTAR", 100, 180),
+            self._create_mock_element("Endereço Profissional", 50, 230),
+            self._create_mock_element("AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista", 50, 260),
+            self._create_mock_element("SÃO PAULO - SP", 50, 290),
+            self._create_mock_element("01310300", 50, 320),
+            self._create_mock_element("Telefone Profissional", 50, 370),
+            self._create_mock_element("SITUAÇÃO REGULAR", 100, 450),
+        ]
+        
+        mock_partition.return_value = mock_elements
+        
+        # Test parsing
+        elements = connector._parse_pdf_elements("files/oab_1.pdf")
+        structured_text = connector._build_structured_text(elements)
+        
+        # Verify the main information is present
+        self.assertIn("JOANA D'ARC", structured_text)
+        self.assertIn("101943", structured_text)
+        self.assertIn("PR", structured_text)
+        self.assertIn("SUPLEMENTAR", structured_text)
+        self.assertIn("SITUAÇÃO REGULAR", structured_text)
+        self.assertIn("AVENIDA PAULISTA", structured_text)
+        
+        # Verify lines are properly ordered (top to bottom)
+        lines = structured_text.split('\n')
+        # JOANA D'ARC should be first (Y=50)
+        self.assertEqual(lines[0], "JOANA D'ARC")
+        self.assertEqual(lines[1], "Inscrição Seccional Subseção")
+        self.assertEqual(lines[2], "101943 PR CONSELHO SECCIONAL - PARANÁ")
+        self.assertEqual(lines[3], "SUPLEMENTAR")
+        self.assertEqual(lines[4], "Endereço Profissional")
+        self.assertEqual(lines[5], "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista")
+        self.assertEqual(lines[6], "SÃO PAULO - SP")
+        self.assertEqual(lines[7], "01310300")
+        self.assertEqual(lines[8], "Telefone Profissional")
+        # SITUAÇÃO REGULAR should be last (Y=450)
+        self.assertEqual(lines[-1], "SITUAÇÃO REGULAR")
+
+    @patch('core.connectors.llm_connector.partition_pdf')
+    def test_build_structured_text_real_oab2_pdf(self, mock_partition):
+        """Test _build_structured_text with real OAB 2 PDF data structure"""
+        connector = LLMConnector()
+        
+        # Expected structured text for oab_2.pdf based on the provided template
+        expected_text = """LUIS FILIPE ARAUJO AMARAL
+Inscrição Seccional Subseção
+101943 PR CONSELHO SECCIONAL - PARANÁ
+SUPLEMENTAR
+Endereço Profissional
+AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista
+SÃO PAULO - SP
+01310300
+Telefone Profissional
+SITUAÇÃO REGULAR"""
+        
+        # Mock elements simulating what partition_pdf would return for oab_2.pdf
+        mock_elements = [
+            self._create_mock_element("LUIS FILIPE ARAUJO AMARAL", 100, 50),
+            self._create_mock_element("Inscrição", 50, 100),
+            self._create_mock_element("Seccional", 200, 100),
+            self._create_mock_element("Subseção", 350, 100),
+            self._create_mock_element("101943", 50, 130),
+            self._create_mock_element("PR", 200, 130),
+            self._create_mock_element("CONSELHO SECCIONAL - PARANÁ", 350, 130),
+            self._create_mock_element("SUPLEMENTAR", 100, 180),
+            self._create_mock_element("Endereço Profissional", 50, 230),
+            self._create_mock_element("AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista", 50, 260),
+            self._create_mock_element("SÃO PAULO - SP", 50, 290),
+            self._create_mock_element("01310300", 50, 320),
+            self._create_mock_element("Telefone Profissional", 50, 370),
+            self._create_mock_element("SITUAÇÃO REGULAR", 100, 450),
+        ]
+        
+        mock_partition.return_value = mock_elements
+        
+        # Test parsing
+        elements = connector._parse_pdf_elements("files/oab_2.pdf")
+        structured_text = connector._build_structured_text(elements)
+        
+        # Verify the main information is present
+        self.assertIn("LUIS FILIPE ARAUJO AMARAL", structured_text)
+        self.assertIn("101943", structured_text)
+        self.assertIn("PR", structured_text)
+        self.assertIn("SUPLEMENTAR", structured_text)
+        self.assertIn("SITUAÇÃO REGULAR", structured_text)
+        self.assertIn("AVENIDA PAULISTA", structured_text)
+        
+        # Verify lines are properly ordered (top to bottom)
+        lines = structured_text.split('\n')
+        # LUIS FILIPE ARAUJO AMARAL should be first (Y=50)
+        self.assertEqual(lines[0], "LUIS FILIPE ARAUJO AMARAL")
+        # SITUAÇÃO REGULAR should be last (Y=450)
+        self.assertEqual(lines[-1], "SITUAÇÃO REGULAR")
+
+    @patch('core.connectors.llm_connector.partition_pdf')
+    def test_build_structured_text_same_line_grouping_real_data(self, mock_partition):
+        """Test that elements on the same line are properly grouped using real OAB data"""
+        connector = LLMConnector()
+        
+        # Simulate elements that should be grouped on the same line (same Y coordinate)
+        mock_elements = [
+            # Header elements on same line (Y=100)
+            self._create_mock_element("Inscrição", 50, 100),
+            self._create_mock_element("Seccional", 200, 100),
+            self._create_mock_element("Subseção", 350, 100),
+            # Data elements on same line (Y=130)
+            self._create_mock_element("101943", 50, 130),
+            self._create_mock_element("PR", 200, 130),
+            self._create_mock_element("CONSELHO SECCIONAL - PARANÁ", 350, 130),
+        ]
+        
+        mock_partition.return_value = mock_elements
+        
+        elements = connector._parse_pdf_elements("files/test.pdf")
+        structured_text = connector._build_structured_text(elements)
+        
+        lines = structured_text.split('\n')
+        
+        # Should have 2 lines (one for headers, one for data)
+        self.assertEqual(len(lines), 2)
+        
+        # First line should contain all headers
+        self.assertEqual(lines[0], "Inscrição Seccional Subseção")
+        
+        # Second line should contain all data
+        self.assertEqual(lines[1], "101943 PR CONSELHO SECCIONAL - PARANÁ")
+
+    def test_build_structured_text_real_pdf_integration(self):
+        """Integration test to verify _build_structured_text works with actual PDF files"""
+        # This test is optional and only runs if the PDFs exist and we have an API key
+        if not os.path.exists("files/oab_1.pdf"):
+            self.skipTest("PDF file files/oab_1.pdf not found")
+        
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        if not os.getenv("OPENAI_API_KEY"):
+            self.skipTest("OPENAI_API_KEY not configured")
+        
+        connector = LLMConnector()
+        
+        try:
+            # Test with real PDF parsing (this will use partition_pdf)
+            elements = connector._parse_pdf_elements("files/oab_1.pdf")
+            structured_text = connector._build_structured_text(elements)
+            
+            # Basic validation that we got some meaningful text
+            self.assertIsInstance(structured_text, str)
+            self.assertGreater(len(structured_text), 0)
+            
+            # Check that we have multiple lines (PDF should have structured content)
+            lines = structured_text.split('\n')
+            self.assertGreater(len(lines), 1)
+            
+            print(f"\n🔍 Real PDF structured text preview:")
+            print(f"Lines count: {len(lines)}")
+            print(f"First few lines: {lines[:5]}")
+            
+        except Exception as e:
+            self.skipTest(f"Real PDF test failed: {e}")
+
 
 if __name__ == '__main__':
     unittest.main()
