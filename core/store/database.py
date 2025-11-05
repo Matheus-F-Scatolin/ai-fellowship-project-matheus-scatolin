@@ -54,7 +54,7 @@ class TemplateDatabase:
     def find_template_by_label(self, label: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM templates WHERE label = ? LIMIT 1", (label,))
+            cursor.execute("SELECT * FROM templates WHERE label = ? ORDER BY updated_at DESC LIMIT 1", (label,))
             row = cursor.fetchone()
             if row:
                 return dict(row)
