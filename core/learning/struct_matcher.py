@@ -118,8 +118,8 @@ class StructuralMatcher:
             if too_similar:
                 continue
 
-            # Se possui ":", adiciona sem contagem ao limite de 1 novo rótulo
-            if re.search(r':\s*$', text):
+            # Se termina com ":", adiciona sem contagem ao limite de 1 novo rótulo
+            if re.search(r':$', text):
                 signature.add(normalized_text)
                 continue
 
