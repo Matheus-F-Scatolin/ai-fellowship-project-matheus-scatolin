@@ -4,7 +4,10 @@ Exemplo prático do TemplateDatabase usando os arquivos OAB
 Este script demonstra como o banco de dados funciona na prática
 """
 
-import os
+
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 from core.store.database import TemplateDatabase
 from core.connectors.llm_connector import LLMConnector
@@ -258,6 +261,10 @@ def exemplo_pratico_database():
     print("   • Regras de extração específicas para cada tipo")
     print("   • Metadados de confiança e versionamento")
     print("   • Histórico de criação e atualização")
+
+    # 6. Finalização (deleta o banco se quiser começar do zero na próxima vez)
+    os.remove(db.db_path)
+    print(f"\n🧹 Banco de dados temporário removido")
 
 if __name__ == '__main__':
     exemplo_pratico_database()
