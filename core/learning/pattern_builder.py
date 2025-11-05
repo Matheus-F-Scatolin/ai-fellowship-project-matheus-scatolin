@@ -2,18 +2,19 @@
 import re
 from typing import Dict, Any, List, Optional, Tuple
 
-# Padrões regex comuns para diferentes tipos de campos
+# Padrões regex comuns para diferentes tipos de campos com pontuações de confiança
 COMMON_PATTERNS = {
-    'cpf': r'\d{3}\.?\d{3}\.?\d{3}-?\d{2}',
-    'cnpj': r'\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}',
-    'telefone': r'\(?\d{2}\)?\s?\d{4,5}-?\d{4}',
-    'cep': r'\d{5}-?\d{3}',
-    'email': r'[\w\.-]+@[\w\.-]+\.\w+',
-    'data': r'\d{1,2}/\d{1,2}/\d{4}',
-    'hora': r'\d{1,2}:\d{2}',
-    'valor_monetario': r'R\$\s?\d{1,3}(?:\.\d{3})*(?:[.,]\d{2})',
-    'numero_inscricao': r'\d{5,8}',
-    'numero': r'\d+',
+    'cpf': {'pattern': r'\d{3}\.?\d{3}\.?\d{3}-?\d{2}', 'confidence': 1.0},
+    'cnpj': {'pattern': r'\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}', 'confidence': 1.0},
+    'email': {'pattern': r'[\w\.-]+@[\w\.-]+\.\w+', 'confidence': 1.0},
+    'telefone': {'pattern': r'\(?\d{2}\)?\s?\d{4,5}-?\d{4}', 'confidence': 1.0},
+    'cep': {'pattern': r'\d{5}-?\d{3}', 'confidence': 1.0},
+    'valor_monetario': {'pattern': r'R\$\s?\d{1,3}(?:\.\d{3})*(?:[.,]\d{2})', 'confidence': 1.0},
+    'data': {'pattern': r'\d{2}/\d{2}/\d{4}', 'confidence': 1.0},
+    'numero_inscricao': {'pattern': r'\d{5,8}', 'confidence': 1.0},
+    'numero': {'pattern': r'\d+', 'confidence': 0.7},
+    'texto': {'pattern': r'.+', 'confidence': 0.7},
+    'outros': {'pattern': r'.+', 'confidence': 0.7},
 }
 
 # Tolerâncias para encontrar âncoras de contexto
@@ -36,6 +37,7 @@ class PatternBuilder:
     def learn_rule_for_field(self, field_name: str, field_value: Any, elements: List[Dict[str, Any]]) -> Tuple[str, Dict[str, Any], float]:
         """
         Método principal para aprender uma regra de extração para um campo específico.
+        Agora suporta regras híbridas combinando regex, contexto e posição.
         
         Args:
             field_name: Nome do campo (ex: 'cpf_cliente', 'numero_inscricao')
@@ -46,23 +48,45 @@ class PatternBuilder:
             Tupla contendo (rule_type, rule_data, confidence)
         """
         # Verificar se o valor é nulo
-        if field_value is None or str(field_value).strip().lower() == "null":
+        if field_value is None or field_value == "null":
             return ("none", {"reason": "value_is_null"}, 0.9)
         
         # Converter valor para string
         value_str = str(field_value).strip()
         
-        # Tentar padrão regex (prioridade alta)
-        regex_data = self._learn_regex_pattern(field_name, value_str)
-        if regex_data:
-            return ("regex", regex_data, 0.95)
+        # Encontrar o elemento que contém o valor
+        value_element = self._find_element_by_text(value_str, elements)
+        if not value_element:
+            return ("none", {"reason": "value_not_found_in_elements"}, 0.1)
         
-        # Tentar padrão de contexto relativo (prioridade média)
-        context_data = self._learn_context_pattern(value_str, elements)
-        if context_data:
-            return ("relative_context", context_data, 0.85)
+        # Coletar todas as regras possíveis
+        found_rules = []
         
-        # Fallback - nenhum padrão encontrado
+        regex_rule = self._learn_regex_pattern(field_name, value_str)
+        if regex_rule:
+            found_rules.append(regex_rule)
+            
+        context_rule = self._learn_context_pattern(value_str, elements)
+        if context_rule:
+            found_rules.append(context_rule)
+        
+        position_rule = self._learn_position_pattern(value_element)
+        if position_rule:
+            found_rules.append(position_rule)
+        
+        # Decidir a Regra Final
+        # Caso 1: Híbrido (Melhor Caso)
+        if len(found_rules) > 1:
+            hybrid_confidence = sum(r['confidence'] for r in found_rules) / len(found_rules) + 0.2
+            hybrid_confidence = min(hybrid_confidence, 0.99)
+            return ("hybrid", {"rules": found_rules}, hybrid_confidence)
+        
+        # Caso 2: Regra Única
+        if len(found_rules) == 1:
+            rule = found_rules[0]
+            return (rule['type'], rule['data'], rule['confidence'])
+        
+        # Caso 3: Sem Regras
         return ("none", {"reason": "no_pattern_found"}, 0.1)
     
     def _learn_regex_pattern(self, field_name: str, field_value: str) -> Optional[Dict[str, Any]]:
@@ -74,19 +98,18 @@ class PatternBuilder:
             field_value: Valor do campo
             
         Returns:
-            Dicionário com padrão regex ou None se não encontrar
+            Dicionário com regra regex ou None se não encontrar
         """
         field_name_lower = field_name.lower()
         
-        for pattern_type, regex in self.common_patterns.items():
-            # Verificar se o tipo de padrão está no nome do campo
-            if pattern_type in field_name_lower:
-                # Validar se o valor de fato bate com o regex
-                if re.search(regex, field_value):
-                    return {
-                        "pattern": regex,
-                        "type": pattern_type
-                    }
+        for pattern_type, data in self.common_patterns.items():
+            regex = data['pattern']
+            confidence = data['confidence']
+            
+            # Verificar se o tipo de padrão está no nome do campo E valor bate com o regex
+            if pattern_type in field_name_lower and re.search(regex, field_value):
+                rule_data = {"pattern": pattern_type, "regex": regex}
+                return {"type": "regex", "data": rule_data, "confidence": confidence}
         
         return None
     
@@ -99,7 +122,7 @@ class PatternBuilder:
             elements: Lista de elementos estruturados
             
         Returns:
-            Dicionário com dados do contexto ou None se não encontrar
+            Dicionário com regra de contexto ou None se não encontrar
         """
         # Encontrar o elemento que contém o valor
         value_element = self._find_element_by_text(field_value, elements)
@@ -109,24 +132,47 @@ class PatternBuilder:
         # Tentar encontrar âncora à esquerda (ex: "Nome: SON GOKU")
         anchor_left = self._find_anchor_left(value_element, elements)
         if anchor_left:
-            return {
-                "anchor_text": anchor_left['text'],
-                "direction": "right"
-            }
+            rule_data = {"anchor_text": anchor_left['text'], "direction": "right"}
+            return {"type": "relative_context", "data": rule_data, "confidence": 0.8}
         
         # Tentar encontrar âncora acima (ex: "Inscrição\n101943")
         anchor_above = self._find_anchor_above(value_element, elements)
         if anchor_above:
-            return {
-                "anchor_text": anchor_above['text'],
-                "direction": "below"
-            }
+            rule_data = {"anchor_text": anchor_above['text'], "direction": "below"}
+            return {"type": "relative_context", "data": rule_data, "confidence": 0.8}
         
         return None
+    
+    def _learn_position_pattern(self, value_element: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Aprende padrão baseado na posição relativa do elemento na página.
+        
+        Args:
+            value_element: Elemento que contém o valor
+            
+        Returns:
+            Dicionário com regra de posição ou None se não conseguir calcular
+        """
+        x = value_element.get('x')
+        y = value_element.get('y')
+        w = value_element.get('page_width')
+        h = value_element.get('page_height')
+        
+        # Verificar se temos todas as informações necessárias
+        if any(val is None for val in [x, y, w, h]) or w == 0 or h == 0:
+            return None
+        
+        # Calcular posição relativa
+        rel_x = x / w
+        rel_y = y / h
+        
+        rule_data = {"rel_x": rel_x, "rel_y": rel_y, "tolerance": 0.05}
+        return {"type": "position", "data": rule_data, "confidence": 0.6}
     
     def _find_element_by_text(self, text: str, elements: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
         Encontra um elemento pela correspondência de texto.
+        Agora retorna o dicionário do elemento inteiro.
         
         Args:
             text: Texto a procurar

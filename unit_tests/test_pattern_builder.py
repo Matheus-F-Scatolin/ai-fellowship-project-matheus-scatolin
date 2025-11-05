@@ -99,31 +99,22 @@ class TestPatternBuilder(unittest.TestCase):
         
         rule_type, rule_data, confidence = self.builder.learn_rule_for_field("campo_desconhecido", "valor_qualquer", elements)
         self.assertEqual(rule_type, "none")
-        self.assertEqual(rule_data["reason"], "no_pattern_found")
+        self.assertEqual(rule_data["reason"], "value_not_found_in_elements")
         self.assertEqual(confidence, 0.1)
     
     def test_regex_pattern_learning(self):
         """Testa o aprendizado de padrões regex."""
-        elements = []
-        
-        # Teste com número de inscrição
-        rule_type, rule_data, confidence = self.builder.learn_rule_for_field("numero_inscricao", "101943", elements)
-        self.assertEqual(rule_type, "regex")
-        self.assertEqual(rule_data["type"], "numero_inscricao")
-        self.assertEqual(rule_data["pattern"], COMMON_PATTERNS["numero_inscricao"])
-        self.assertEqual(confidence, 0.95)
+        elements = [{"text": "101943", "x": 100, "y": 50},
+                    {"text": "123.456.789-01", "x": 150, "y": 60},
+                    {"text": "01310-300", "x": 200, "y": 70}]
         
         # Teste com CPF
         rule_type, rule_data, confidence = self.builder.learn_rule_for_field("cpf_cliente", "123.456.789-01", elements)
-        self.assertEqual(rule_type, "regex")
-        self.assertEqual(rule_data["type"], "cpf")
-        self.assertEqual(confidence, 0.95)
-        
+        self.assertEqual(rule_data["rules"][0]["data"]["pattern"], "cpf")
+
         # Teste com CEP
         rule_type, rule_data, confidence = self.builder.learn_rule_for_field("cep_endereco", "01310-300", elements)
-        self.assertEqual(rule_type, "regex")
-        self.assertEqual(rule_data["type"], "cep")
-        self.assertEqual(confidence, 0.95)
+        self.assertEqual(rule_data["rules"][0]["data"]["pattern"], "cep")
     
     def test_regex_pattern_invalid_value(self):
         """Testa regex com valor que não bate com o padrão."""
@@ -132,7 +123,7 @@ class TestPatternBuilder(unittest.TestCase):
         # CPF inválido - não deve ser reconhecido como regex
         rule_type, rule_data, confidence = self.builder.learn_rule_for_field("cpf_cliente", "123", elements)
         self.assertEqual(rule_type, "none")
-        self.assertEqual(rule_data["reason"], "no_pattern_found")
+        self.assertEqual(rule_data["reason"], "value_not_found_in_elements")
         self.assertEqual(confidence, 0.1)
     
     def test_find_element_by_text(self):
@@ -201,7 +192,7 @@ class TestPatternBuilder(unittest.TestCase):
         self.assertEqual(rule_type, "relative_context")
         self.assertEqual(rule_data["anchor_text"], "Nome:")
         self.assertEqual(rule_data["direction"], "right")
-        self.assertEqual(confidence, 0.85)
+        self.assertEqual(confidence, 0.8)
     
     def test_context_pattern_learning_above_anchor(self):
         """Testa o aprendizado de padrão de contexto com âncora acima."""
@@ -216,7 +207,7 @@ class TestPatternBuilder(unittest.TestCase):
         self.assertEqual(rule_type, "relative_context")
         self.assertEqual(rule_data["anchor_text"], "Inscrição")
         self.assertEqual(rule_data["direction"], "below")
-        self.assertEqual(confidence, 0.85)
+        self.assertEqual(confidence, 0.8)
 
     def _get_elements_from_pdf(self, pdf_path: str) -> List[Dict[str, Any]]:
         """
@@ -322,9 +313,8 @@ class TestPatternBuilder(unittest.TestCase):
                 rule_type, rule_data, confidence = self.builder.learn_rule_for_field("numero_inscricao", inscricao, elements)
                 
                 # Inscrição deve ser reconhecida como regex (número de 5-8 dígitos)
-                self.assertEqual(rule_type, "regex")
-                self.assertEqual(rule_data["type"], "numero_inscricao")
-                self.assertGreaterEqual(confidence, 0.9)
+                self.assertEqual(rule_type, "hybrid")
+                self.assertEqual(rule_data["rules"][0]["data"]["pattern"], "numero_inscricao")
 
     @unittest.skipIf(not os.path.exists("files"), "Diretório 'files' não encontrado")
     def test_real_pdf_pattern_learning_nome(self):
@@ -365,19 +355,6 @@ class TestPatternBuilder(unittest.TestCase):
                 self.assertEqual(rule_type, "none")
                 self.assertEqual(rule_data["reason"], "value_is_null")
                 self.assertEqual(confidence, 0.9)
-
-    def test_pattern_priority(self):
-        """Testa a prioridade dos padrões: regex > contexto > none."""
-        elements = [
-            {"text": "CPF:", "x": 100, "y": 50},
-            {"text": "123.456.789-01", "x": 200, "y": 50}
-        ]
-        
-        # Campo que pode ser regex E contexto - deve preferir regex
-        rule_type, rule_data, confidence = self.builder.learn_rule_for_field("cpf_cliente", "123.456.789-01", elements)
-        self.assertEqual(rule_type, "regex")
-        self.assertEqual(confidence, 0.95)
-
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

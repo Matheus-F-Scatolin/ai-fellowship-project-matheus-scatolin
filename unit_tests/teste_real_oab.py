@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Teste real do LLMConnector com o arquivo oab_1.pdf
+Teste real do LLMConnector com padrões extraídos do pattern_builder.py
 """
 
 import json
@@ -11,9 +11,64 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.connectors.llm_connector import LLMConnector
+from core.learning.pattern_builder import PatternBuilder
+
+
+def converter_elementos_para_dicionarios(elements_raw):
+    """
+    Converte elementos da biblioteca unstructured para dicionários 
+    no formato esperado pelo PatternBuilder.
+    
+    Args:
+        elements_raw: Lista de elementos da biblioteca unstructured
+        
+    Returns:
+        Lista de dicionários com formato compatível
+    """
+    elements_converted = []
+    
+    for elem in elements_raw:
+        # Filtrar elementos sem texto
+        if not hasattr(elem, 'text') or not elem.text or not elem.text.strip():
+            continue
+            
+        # Extrair coordenadas dos metadados
+        x, y = 0, 0
+        page_width, page_height = 612, 792  # Valores padrão para PDF (8.5" x 11")
+        
+        if hasattr(elem, 'metadata') and elem.metadata:
+            coordinates = getattr(elem.metadata, 'coordinates', None)
+            if coordinates and hasattr(coordinates, 'points'):
+                # Pegar o primeiro ponto como referência
+                if coordinates.points:
+                    point = coordinates.points[0]
+                    # Verificar se point é uma tupla (x, y) ou um objeto com atributos
+                    if isinstance(point, (tuple, list)) and len(point) >= 2:
+                        x, y = point[0], point[1]
+                    else:
+                        # Fallback para o formato de objeto
+                        x = getattr(point, 'x', 0)
+                        y = getattr(point, 'y', 0)
+            
+            # Tentar obter dimensões da página
+            page_number = getattr(elem.metadata, 'page_number', 1)
+            # Para simplificar, usar dimensões padrão ou calcular aproximadamente
+            # baseado nas coordenadas máximas encontradas
+        
+        element_dict = {
+            'text': elem.text.strip(),
+            'x': x,
+            'y': y,
+            'page_width': page_width,
+            'page_height': page_height
+        }
+        
+        elements_converted.append(element_dict)
+    
+    return elements_converted
 
 def teste_real_oab():
-    """Teste real com o PDF oab_1.pdf"""
+    """Teste real com padrões extraídos do PDF oab_1.pdf e aplicação no oab_2.pdf"""
     
     # Verificar se a API key está configurada
     from dotenv import load_dotenv
@@ -25,10 +80,11 @@ def teste_real_oab():
         print("OPENAI_API_KEY=sua_chave_aqui")
         return
     
-    print("🔧 Iniciando teste real do LLMConnector...")
+    print("🔧 Iniciando teste real com extração de padrões...")
     
     # Configurar dados do teste
-    pdf_path = "files/oab_1.pdf"
+    pdf1_path = "files/oab_1.pdf"
+    pdf2_path = "files/oab_2.pdf"
     label = "carteira_oab"
     schema = {
         "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
@@ -38,8 +94,8 @@ def teste_real_oab():
         "situacao": "Situação do profissional, normalmente no canto inferior direito."
     }
     
-    # Resultado esperado
-    resultado_esperado = {
+    # Resultados esperados
+    resultado_esperado_pdf1 = {
         "nome": "JOANA D'ARC",
         "inscricao": "101943",
         "seccional": "PR",
@@ -47,71 +103,354 @@ def teste_real_oab():
         "situacao": "Situação Regular"
     }
     
-    print(f"📄 Arquivo PDF: {pdf_path}")
+    resultado_esperado_pdf2 = {
+        "nome": "LUIS FILIPE ARAUJO AMARAL",
+        "inscricao": "101943",
+        "seccional": "PR",
+        "categoria": "Suplementar",
+        "situacao": "Situação Regular"
+    }
+    
+    print(f"📄 PDF 1 (para extração de padrões): {pdf1_path}")
+    print(f"📄 PDF 2 (para aplicação de padrões): {pdf2_path}")
     print(f"🏷️  Label: {label}")
     print("📋 Schema:")
     for key, desc in schema.items():
         print(f"   - {key}: {desc}")
     
-    print("\n🎯 Resultado esperado:")
-    print(json.dumps(resultado_esperado, indent=2, ensure_ascii=False))
-    
     try:
-        # Verificar se o arquivo existe
-        if not os.path.exists(pdf_path):
-            print(f"❌ Arquivo não encontrado: {pdf_path}")
+        # Verificar se os arquivos existem
+        if not os.path.exists(pdf1_path):
+            print(f"❌ Arquivo não encontrado: {pdf1_path}")
+            return
+        if not os.path.exists(pdf2_path):
+            print(f"❌ Arquivo não encontrado: {pdf2_path}")
             return
             
-        # Inicializar o conector
-        print("\n🤖 Inicializando LLMConnector...")
+        # Inicializar componentes
+        print("\n🤖 Inicializando LLMConnector e PatternBuilder...")
         connector = LLMConnector()
+        pattern_builder = PatternBuilder()
         
-        # Executar extração
-        print("⚡ Executando extração...")
-        resultado_json = connector.run_extraction(pdf_path, label, schema)
+        # === ETAPA 1: EXTRAIR DADOS DO PRIMEIRO PDF COM GPT ===
+        print("\n" + "="*60)
+        print("📊 ETAPA 1: Extraindo dados do primeiro PDF com GPT")
+        print("="*60)
         
-        # Parse do resultado
-        resultado = json.loads(resultado_json)
+        resultado_json_pdf1 = connector.run_extraction(pdf1_path, label, schema)
+        resultado_pdf1 = json.loads(resultado_json_pdf1)
         
-        print("\n✅ Extração concluída!")
+        print("✅ Extração do PDF 1 concluída!")
         print("📊 Resultado obtido:")
-        print(json.dumps(resultado, indent=2, ensure_ascii=False))
+        print(json.dumps(resultado_pdf1, indent=2, ensure_ascii=False))
         
-        # Comparar resultados
-        print("\n🔍 Comparação com resultado esperado:")
-        campos_corretos = 0
-        total_campos = len(resultado_esperado)
+        # === ETAPA 2: EXTRAIR PADRÕES DOS DADOS DO PRIMEIRO PDF ===
+        print("\n" + "="*60)
+        print("🧠 ETAPA 2: Extraindo padrões do primeiro PDF")
+        print("="*60)
         
-        for campo, valor_esperado in resultado_esperado.items():
-            valor_obtido = resultado.get(campo, "CAMPO_NAO_ENCONTRADO")
+        # Obter elementos estruturados do primeiro PDF
+        elements_raw_pdf1 = connector._parse_pdf_elements(pdf1_path)
+        print(f"📊 Elementos brutos encontrados no PDF 1: {len(elements_raw_pdf1)}")
+        
+        # Converter elementos para formato esperado pelo PatternBuilder
+        elements_pdf1 = converter_elementos_para_dicionarios(elements_raw_pdf1)
+        print(f"📊 Elementos convertidos no PDF 1: {len(elements_pdf1)}")
+        
+        # Extrair padrões para cada campo
+        padroes_extraidos = {}
+        print("\n🔍 Extraindo padrões para cada campo:")
+        
+        for campo, valor in resultado_pdf1.items():
+            print(f"\n   🔎 Analisando campo '{campo}' com valor '{valor}':")
             
-            # Normalizar para comparação (case insensitive e remover espaços)
-            valor_esperado_norm = str(valor_esperado).strip().lower()
-            valor_obtido_norm = str(valor_obtido).strip().lower()
+            rule_type, rule_data, confidence = pattern_builder.learn_rule_for_field(
+                campo, valor, elements_pdf1
+            )
             
-            if valor_esperado_norm == valor_obtido_norm:
-                print(f"   ✅ {campo}: '{valor_obtido}' (correto)")
-                campos_corretos += 1
+            padroes_extraidos[campo] = {
+                "type": rule_type,
+                "data": rule_data,
+                "confidence": confidence,
+                "original_value": valor
+            }
+            
+            print(f"      📋 Tipo de regra: {rule_type}")
+            print(f"      📊 Confiança: {confidence:.2f}")
+            
+            if rule_type == "hybrid":
+                print(f"      🔗 Regras híbridas ({len(rule_data['rules'])} regras):")
+                for i, rule in enumerate(rule_data['rules']):
+                    print(f"         {i+1}. {rule['type']}: {rule['data']} (conf: {rule['confidence']:.2f})")
+            elif rule_type != "none":
+                print(f"      📝 Dados da regra: {rule_data}")
             else:
-                print(f"   ❌ {campo}: obtido '{valor_obtido}' | esperado '{valor_esperado}'")
+                print(f"      ⚠️  Razão: {rule_data.get('reason', 'desconhecida')}")
         
-        # Calcular precisão
-        precisao = (campos_corretos / total_campos) * 100
-        print(f"\n📈 Precisão: {campos_corretos}/{total_campos} campos corretos ({precisao:.1f}%)")
+        print("\n" + "="*40)
+        print("📋 RESUMO DOS PADRÕES EXTRAÍDOS:")
+        print("="*40)
+        for campo, info in padroes_extraidos.items():
+            print(f"• {campo}: {info['type']} (conf: {info['confidence']:.2f})")
         
-        if precisao == 100:
-            print("🎉 Perfeito! Todos os campos foram extraídos corretamente!")
-        elif precisao >= 80:
-            print("👍 Muito bom! A maioria dos campos foi extraída corretamente.")
-        elif precisao >= 60:
-            print("⚠️  Razoável. Alguns campos precisam de ajuste.")
-        else:
-            print("🔧 Precisa melhorar. Verifique o prompt ou processamento.")
+        # === ETAPA 3: EXTRAIR DADOS DO SEGUNDO PDF COM GPT (PARA COMPARAÇÃO) ===
+        print("\n" + "="*60)
+        print("📊 ETAPA 3: Extraindo dados do segundo PDF com GPT (para comparação)")
+        print("="*60)
+        
+        resultado_json_pdf2 = connector.run_extraction(pdf2_path, label, schema)
+        resultado_pdf2_gpt = json.loads(resultado_json_pdf2)
+        
+        print("✅ Extração do PDF 2 com GPT concluída!")
+        print("📊 Resultado obtido com GPT:")
+        print(json.dumps(resultado_pdf2_gpt, indent=2, ensure_ascii=False))
+        
+        # === ETAPA 4: APLICAR PADRÕES NO SEGUNDO PDF ===
+        print("\n" + "="*60)
+        print("🎯 ETAPA 4: Aplicando padrões extraídos no segundo PDF")
+        print("="*60)
+        
+        # Obter elementos estruturados do segundo PDF
+        elements_raw_pdf2 = connector._parse_pdf_elements(pdf2_path)
+        print(f"📊 Elementos brutos encontrados no PDF 2: {len(elements_raw_pdf2)}")
+        
+        # Converter elementos para formato esperado pelo PatternBuilder
+        elements_pdf2 = converter_elementos_para_dicionarios(elements_raw_pdf2)
+        print(f"📊 Elementos convertidos no PDF 2: {len(elements_pdf2)}")
+        
+        resultado_pdf2_padroes = aplicar_padroes_extraidos(padroes_extraidos, elements_pdf2)
+        
+        print("\n✅ Aplicação de padrões concluída!")
+        print("📊 Resultado obtido com padrões:")
+        print(json.dumps(resultado_pdf2_padroes, indent=2, ensure_ascii=False))
+        
+        # === ETAPA 5: COMPARAÇÃO DE RESULTADOS ===
+        print("\n" + "="*60)
+        print("📈 ETAPA 5: Comparação de resultados")
+        print("="*60)
+        
+        print("\n🎯 Resultado esperado para PDF 2:")
+        print(json.dumps(resultado_esperado_pdf2, indent=2, ensure_ascii=False))
+        
+        print("\n🔍 Comparação GPT vs Padrões vs Esperado:")
+        comparar_resultados(resultado_esperado_pdf2, resultado_pdf2_gpt, resultado_pdf2_padroes)
             
     except Exception as e:
         print(f"❌ Erro durante a execução: {e}")
         import traceback
         traceback.print_exc()
+
+
+def aplicar_padroes_extraidos(padroes_extraidos: dict, elements: list) -> dict:
+    """
+    Aplica os padrões extraídos em novos elementos para extrair dados.
+    
+    Args:
+        padroes_extraidos: Dicionário com padrões extraídos do primeiro PDF
+        elements: Lista de elementos do segundo PDF
+        
+    Returns:
+        Dicionário com valores extraídos usando os padrões
+    """
+    import re
+    from core.learning.pattern_builder import Y_TOLERANCE_SAME_LINE, X_TOLERANCE_SAME_COLUMN
+    
+    resultado = {}
+    
+    print("\n🔍 Aplicando padrões extraídos:")
+    
+    for campo, padrao_info in padroes_extraidos.items():
+        print(f"\n   🔎 Processando campo '{campo}':")
+        
+        rule_type = padrao_info["type"]
+        rule_data = padrao_info["data"]
+        confidence = padrao_info["confidence"]
+        
+        valor_encontrado = None
+        
+        if rule_type == "none":
+            print(f"      ⚠️  Sem padrão disponível ({rule_data.get('reason', 'unknown')})")
+            resultado[campo] = None
+            continue
+        
+        elif rule_type == "regex":
+            # Aplicar padrão regex
+            pattern = rule_data["regex"]
+            print(f"      🔍 Aplicando regex: {pattern}")
+            
+            for elem in elements:
+                text = elem.get('text', '')
+                match = re.search(pattern, text)
+                if match:
+                    valor_encontrado = match.group()
+                    print(f"      ✅ Match regex encontrado: '{valor_encontrado}'")
+                    break
+        
+        elif rule_type == "relative_context":
+            # Aplicar padrão de contexto relativo
+            anchor_text = rule_data["anchor_text"]
+            direction = rule_data["direction"]
+            print(f"      🔍 Procurando âncora '{anchor_text}' -> {direction}")
+            
+            # Encontrar elemento âncora
+            anchor_element = None
+            for elem in elements:
+                if anchor_text.lower() in elem.get('text', '').lower():
+                    anchor_element = elem
+                    break
+            
+            if anchor_element:
+                print(f"      ✅ Âncora encontrada: '{anchor_element['text']}'")
+                
+                if direction == "right":
+                    # Procurar à direita (mesma linha)
+                    anchor_y = anchor_element['y']
+                    anchor_x = anchor_element['x']
+                    
+                    for elem in elements:
+                        if (abs(elem['y'] - anchor_y) <= Y_TOLERANCE_SAME_LINE and 
+                            elem['x'] > anchor_x):
+                            valor_encontrado = elem['text']
+                            print(f"      ✅ Valor à direita encontrado: '{valor_encontrado}'")
+                            break
+                            
+                elif direction == "below":
+                    # Procurar abaixo (mesma coluna)
+                    anchor_y = anchor_element['y']
+                    anchor_x = anchor_element['x']
+                    
+                    for elem in elements:
+                        if (elem['y'] > anchor_y and 
+                            abs(elem['x'] - anchor_x) <= X_TOLERANCE_SAME_COLUMN):
+                            valor_encontrado = elem['text']
+                            print(f"      ✅ Valor abaixo encontrado: '{valor_encontrado}'")
+                            break
+            else:
+                print(f"      ❌ Âncora '{anchor_text}' não encontrada")
+        
+        elif rule_type == "position":
+            # Aplicar padrão de posição
+            rel_x = rule_data["rel_x"]
+            rel_y = rule_data["rel_y"]
+            tolerance = rule_data["tolerance"]
+            print(f"      🔍 Procurando posição relativa ({rel_x:.3f}, {rel_y:.3f}) ±{tolerance}")
+            
+            for elem in elements:
+                if all(key in elem for key in ['x', 'y', 'page_width', 'page_height']):
+                    elem_rel_x = elem['x'] / elem['page_width']
+                    elem_rel_y = elem['y'] / elem['page_height']
+                    
+                    if (abs(elem_rel_x - rel_x) <= tolerance and 
+                        abs(elem_rel_y - rel_y) <= tolerance):
+                        valor_encontrado = elem['text']
+                        print(f"      ✅ Valor na posição encontrado: '{valor_encontrado}'")
+                        break
+        
+        elif rule_type == "hybrid":
+            # Aplicar regras híbridas (tentar todas e escolher a melhor)
+            print(f"      🔗 Aplicando {len(rule_data['rules'])} regras híbridas:")
+            
+            candidatos = []
+            
+            for i, rule in enumerate(rule_data['rules']):
+                print(f"         {i+1}. Testando regra {rule['type']}...")
+                
+                # Simular aplicação recursiva de cada sub-regra
+                sub_padrao = {campo: {"type": rule['type'], "data": rule['data'], "confidence": rule['confidence']}}
+                sub_resultado = aplicar_padroes_extraidos(sub_padrao, elements)
+                
+                if sub_resultado.get(campo):
+                    candidatos.append({
+                        "valor": sub_resultado[campo],
+                        "confidence": rule['confidence'],
+                        "tipo": rule['type']
+                    })
+                    print(f"            ✅ Candidato: '{sub_resultado[campo]}' (conf: {rule['confidence']:.2f})")
+            
+            # Escolher candidato com maior confiança
+            if candidatos:
+                melhor_candidato = max(candidatos, key=lambda x: x['confidence'])
+                valor_encontrado = melhor_candidato['valor']
+                print(f"      🏆 Melhor candidato: '{valor_encontrado}' ({melhor_candidato['tipo']})")
+        
+        # Atribuir resultado
+        resultado[campo] = valor_encontrado
+        
+        if valor_encontrado:
+            print(f"      ✅ Campo '{campo}' extraído: '{valor_encontrado}'")
+        else:
+            print(f"      ❌ Campo '{campo}' não encontrado")
+    
+    return resultado
+
+
+def comparar_resultados(esperado: dict, resultado_gpt: dict, resultado_padroes: dict):
+    """
+    Compara os resultados obtidos por GPT e por padrões com o resultado esperado.
+    """
+    print("\n📊 Comparação detalhada:")
+    print("-" * 80)
+    print(f"{'Campo':<15} {'Esperado':<20} {'GPT':<20} {'Padrões':<20} {'Status'}")
+    print("-" * 80)
+    
+    acertos_gpt = 0
+    acertos_padroes = 0
+    total_campos = len(esperado)
+    
+    for campo, valor_esperado in esperado.items():
+        valor_gpt = resultado_gpt.get(campo, "N/A")
+        valor_padroes = resultado_padroes.get(campo, "N/A")
+        
+        # Normalizar para comparação
+        def normalizar(valor):
+            if valor is None:
+                return "null"
+            return str(valor).strip().lower()
+        
+        esperado_norm = normalizar(valor_esperado)
+        gpt_norm = normalizar(valor_gpt)
+        padroes_norm = normalizar(valor_padroes)
+        
+        # Verificar acertos
+        gpt_correto = esperado_norm == gpt_norm
+        padroes_correto = esperado_norm == padroes_norm
+        
+        if gpt_correto:
+            acertos_gpt += 1
+        if padroes_correto:
+            acertos_padroes += 1
+        
+        # Status visual
+        status = ""
+        if gpt_correto and padroes_correto:
+            status = "✅✅"
+        elif gpt_correto and not padroes_correto:
+            status = "✅❌"
+        elif not gpt_correto and padroes_correto:
+            status = "❌✅"
+        else:
+            status = "❌❌"
+        
+        print(f"{campo:<15} {str(valor_esperado):<20} {str(valor_gpt):<20} {str(valor_padroes):<20} {status}")
+    
+    print("-" * 80)
+    
+    # Calcular precisões
+    precisao_gpt = (acertos_gpt / total_campos) * 100
+    precisao_padroes = (acertos_padroes / total_campos) * 100
+    
+    print(f"\n📈 Resultados finais:")
+    print(f"   🤖 GPT: {acertos_gpt}/{total_campos} campos corretos ({precisao_gpt:.1f}%)")
+    print(f"   🧠 Padrões: {acertos_padroes}/{total_campos} campos corretos ({precisao_padroes:.1f}%)")
+    
+    if precisao_padroes > precisao_gpt:
+        print(f"   🏆 Padrões superaram o GPT por {precisao_padroes - precisao_gpt:.1f} pontos!")
+    elif precisao_gpt > precisao_padroes:
+        print(f"   🤖 GPT superou os padrões por {precisao_gpt - precisao_padroes:.1f} pontos!")
+    else:
+        print(f"   🤝 Empate! Ambos obtiveram {precisao_gpt:.1f}% de precisão!")
+    
+    return precisao_gpt, precisao_padroes
 
 def teste_build_structured_text():
     """Teste específico da função _build_structured_text com PDFs reais"""
