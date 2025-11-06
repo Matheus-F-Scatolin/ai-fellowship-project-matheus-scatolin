@@ -4,17 +4,23 @@ from typing import Dict, Any, List, Set, Tuple
 import unicodedata
 
 # Threshold de similaridade para considerar um match
-JACCARD_MATCH_THRESHOLD = 0.80
+JACCARD_MATCH_THRESHOLD = 0.8
 
 # Conjunto de rótulos/palavras-chave conhecidos para ajudar na identificação
 KNOWN_LABELS = {
     'nome', 'inscricao', 'seccional', 'subsecao', 'categoria', 
     'endereço', 'telefone', 'situacao', 'data', 'sistema', 'produto',
     'valor', 'quantidade', 'tipo', 'cidade', 'referencia', 'cpf',
-    'cnpj', 'cep', 'email', 'data', 'hora', 'valor', 'total',
+    'cnpj', 'cep', 'email', 'hora', 'total','sobrenome', 'logradouro',
+    'complemento', 'bairro', 'estado', 'pais', 'cidade', 'uf',
     'subtotal', 'descontos', 'emissao', 'vencimento', 'pagamento',
     'banco', 'agencia', 'conta', 'favorecido', 'documento',
-    'numero do documento', 'endereco de entrega', 'forma de pagamento'
+    'numero do documento', 'endereco de entrega', 'forma de pagamento',
+    'data de nascimento', 'estado civil', 'nacionalidade',
+    'profissao', 'rg', 'orgao emissor', 'uf', 'titulo de eleitor',
+    'zona', 'secao', 'carteira de trabalho', 'serie', 'pis', 'pasep',
+    'salario', 'cargo', 'admissao', 'demissao', 'motivo da demissao',
+    'ctps', 'ctps serie', 'ctps uf', 'ctps data de emissao'
 }
 
 class StructuralMatcher:
@@ -28,12 +34,12 @@ class StructuralMatcher:
         self.known_labels = KNOWN_LABELS
         self.match_threshold = JACCARD_MATCH_THRESHOLD
     
-    def check_similarity(self, new_signature: Set[str], template_signature_list: List[str]) -> Tuple[bool, float]:
+    def check_similarity(self, new_pdf_elements, template_signature_list: List[str]) -> Tuple[bool, float]:
         """
         Compara duas assinaturas usando similaridade Jaccard.
         
         Args:
-            new_signature: Conjunto de rótulos extraídos do novo documento
+            new_pdf_elements: Conjunto de elentos extraídos do novo documento
             template_signature_list: Lista de rótulos do template salvo no banco
             
         Returns:
@@ -41,6 +47,8 @@ class StructuralMatcher:
         """
         # Converte a assinatura do banco (lista) em conjunto
         template_signature_set = set(template_signature_list)
+
+        new_signature = self.extract_signature(new_pdf_elements)
         
         # Calcula a similaridade Jaccard
         similarity_score = self._calculate_jaccard_similarity(new_signature, template_signature_set)
@@ -53,16 +61,7 @@ class StructuralMatcher:
     def extract_signature(self, elements: List[Dict[str, Any]]) -> Set[str]:
         """
         Extrai a assinatura estrutural de uma lista de elementos do unstructured.
-        
-        Esta versão é mais criteriosa e só adiciona no máximo UMA nova assinatura
-        que não esteja em self.known_labels. A estratégia é:
-        - Manter adição imediata de rótulos conhecidos e títulos.
-        - Coletar candidatos que passem heurísticas estritas.
-        - Atribuir uma pontuação a cada candidato com base em sinais fortes de rótulo
-          (dois-pontos, presença de palavras-chaves, curta extensão, ausência de
-          números, categoria etc.).
-        - Selecionar o melhor candidato (se atingir threshold) e adicioná-lo — no
-          máximo um novo rótulo.
+        Itera sobre os KNOWN_LABELS e testa se eles aparecem nos textos dos elementos.
         
         Args:
             elements: Lista de elementos extraídos pelo unstructured
@@ -70,105 +69,13 @@ class StructuralMatcher:
         Returns:
             Conjunto de rótulos que compõem a assinatura estrutural
         """
-        signature: Set[str] = set()
-        candidates: List[Tuple[str, float]] = []  # (label, score)
-        def token_similarity(a: str, b: str) -> float:
-            ta = set(a.split())
-            tb = set(b.split())
-            if not ta and not tb:
-                return 0.0
-            inter = ta.intersection(tb)
-            uni = ta.union(tb)
-            return len(inter) / len(uni)
+        pdf_text = self._build_structured_text(elements)
+        pdf_normalized_text = self._normalize_text(pdf_text)
+        signature = set()
+        for label in self.known_labels:
+            if label in pdf_normalized_text:
+                signature.add(label)
 
-        for elem in elements:
-            text = elem.get('text', '').strip()
-            if not text:
-                continue
-
-            normalized_text = self._normalize_text(text)
-
-            # Regra 1: Rótulo conhecido -> adiciona sem contagem ao limite de 1 novo rótulo
-            if normalized_text in self.known_labels:
-                signature.add(normalized_text)
-                continue
-
-            # Evitar valores puramente numéricos ou monetários
-            if re.fullmatch(r'[\d\.,\-\/R\$ %]+', text):
-                continue
-
-            # Evitar sentenças longas (rótulos são geralmente curtos)
-            if len(normalized_text.split()) > 4:
-                continue
-    
-            # Heurísticas adicionais para filtrar ruído
-            if not (2 <= len(normalized_text) <= 50):
-                continue
-
-            # Evitar textos que contenham muitas cifras/ dígitos
-            if sum(c.isdigit() for c in normalized_text) / max(1, len(normalized_text)) > 0.2:
-                continue
-
-            # Evitar se muito semelhante a um rótulo já presente
-            too_similar = False
-            for s in signature:
-                if token_similarity(normalized_text, s) > 0.75:
-                    too_similar = True
-                    break
-            if too_similar:
-                continue
-
-            # Se termina com ":", adiciona sem contagem ao limite de 1 novo rótulo
-            if re.search(r':$', text):
-                signature.add(normalized_text)
-                continue
-
-            # Score heurístico para priorizar o melhor candidato
-            category = elem.get('category', '')
-            score = 0.0
-
-            # Palavra-chave do domínio (aumenta confiança)
-            domain_keywords = ['nome', 'endereco', 'telefone', 'cpf', 'cnpj', 'email', 'valor', 'data', 'vencimento', 'total', 'subtotal']
-            for kw in domain_keywords:
-                if kw in normalized_text:
-                    score += 2.0
-
-            # Preferir textos curtos (1-3 tokens)
-            tokens = normalized_text.split()
-            if len(tokens) == 1:
-                score += 1.2
-            elif len(tokens) <= 3:
-                score += 0.8
-
-            # Penalizar presença de dígitos (provável valor)
-            if re.search(r'\d', normalized_text):
-                score -= 2.0
-
-            # Penalizar se contém palavras muito comuns sem sentido (stopwords simples)
-            stopwords = {'de', 'do', 'da', 'dos', 'das', 'e', 'ou', 'para', 'com', 'em', 'por'}
-            stopword_ratio = sum(1 for t in tokens if t in stopwords) / max(1, len(tokens))
-            if stopword_ratio > 0.5:
-                score -= 1.0
-
-            # Leve bônus se categoria sinalizou algo mas não foi Title
-            if category:
-                score += 0.3
-
-            # Só considerar candidatos com score razoável
-            if score > 0.0:
-                candidates.append((normalized_text, score))
-
-        # Seleciona o melhor candidato (máximo 1 novo rótulo)
-        if candidates:
-            # Ordena por score desc e por comprimento asc para desempate
-            candidates.sort(key=lambda x: (-x[1], len(x[0])))
-            best_label, best_score = candidates[0]
-
-            # Threshold conservador para aceitar um novo rótulo
-            if best_score >= 1.5:
-                # Evitar duplicatas contra known_labels (por segurança)
-                if best_label not in self.known_labels and best_label not in signature:
-                    signature.add(best_label)
         return signature
 
     
@@ -215,3 +122,49 @@ class StructuralMatcher:
         text = re.sub(r'[:]$', '', text).strip()
         
         return text
+    
+    def _build_structured_text(self, elements: List[Dict[str, Any]]) -> str:
+        """
+        Constrói um texto estruturado a partir dos elementos do unstructured.
+        
+        Args:
+            elements: Lista de elementos extraídos pelo unstructured
+            
+        Returns:
+            Texto estruturado
+        """
+        # Ordenar elementos por posição (y primeiro, depois x)
+        elements.sort(key=lambda e: (e['y'], e['x']))
+        
+        # Agrupar em linhas com tolerância para pequenas diferenças em y
+        final_lines = []
+        current_line = []
+        line_ref_y = None
+        y_tolerance = 5  # Tolerância em unidades de coordenada
+        
+        for elem in elements:
+            if not all(k in elem for k in ('text', 'x', 'y')):
+                raise ValueError("Elemento inválido: faltando 'text', 'x' ou 'y' chave.")
+            if line_ref_y is None:
+                # inicia primeira linha
+                current_line.append(elem)
+                line_ref_y = elem['y']
+            else:
+                # compara com o y do primeiro elemento da linha atual
+                if abs(elem['y'] - line_ref_y) <= y_tolerance:
+                    current_line.append(elem)
+                else:
+                    # Finalizar linha atual e começar nova
+                    current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
+                    line_text = " ".join([e['text'] for e in current_line_sorted])
+                    final_lines.append(line_text)
+                    # Começar nova linha
+                    current_line = [elem]
+                    line_ref_y = elem['y']
+
+        # Adicionar última linha
+        if current_line:
+            current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
+            line_text = " ".join([e['text'] for e in current_line_sorted])
+            final_lines.append(line_text)
+        return "\n".join(final_lines)

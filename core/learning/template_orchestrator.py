@@ -60,9 +60,8 @@ class TemplateOrchestrator:
             return None
         
         # 4. Comparar Assinaturas (Nossa Estratégia)
-        new_signature_set = self.matcher.extract_signature(elements)
         saved_signature_list = json.loads(template['structural_signature'])
-        is_match, score = self.matcher.check_similarity(new_signature_set, saved_signature_list)
+        is_match, score = self.matcher.check_similarity(elements, saved_signature_list)
         
         # 5. Verificar Match
         if not is_match:
