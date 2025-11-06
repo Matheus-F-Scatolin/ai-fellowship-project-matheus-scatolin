@@ -106,8 +106,8 @@ class PatternBuilder:
             regex = data['pattern']
             confidence = data['confidence']
             
-            # Verificar se o tipo de padrão está no nome do campo E valor bate com o regex
-            if pattern_type in field_name_lower and re.search(regex, field_value):
+            # Verificar se o tipo de padrão está no nome do campo OU valor bate com o regex
+            if pattern_type in field_name_lower or re.search(regex, field_value):
                 rule_data = {"pattern": pattern_type, "regex": regex}
                 return {"type": "regex", "data": rule_data, "confidence": confidence}
         
@@ -155,8 +155,9 @@ class PatternBuilder:
         """
         x = value_element.get('x')
         y = value_element.get('y')
-        w = value_element.get('page_width')
-        h = value_element.get('page_height')
+        # Dimensões padrão da página: 612, 792
+        w = value_element.get('page_width', 612)
+        h = value_element.get('page_height', 792)
         
         # Verificar se temos todas as informações necessárias
         if any(val is None for val in [x, y, w, h]) or w == 0 or h == 0:
@@ -195,7 +196,8 @@ class PatternBuilder:
     
     def _find_anchor_left(self, value_element: Dict[str, Any], elements: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
-        Encontra uma âncora à esquerda do elemento de valor (mesma linha).
+        Encontra uma âncora à esquerda do elemento de valor (mesma linha). 
+        A âncora não pode ser um número.
         
         Args:
             value_element: Elemento que contém o valor
@@ -211,6 +213,9 @@ class PatternBuilder:
         min_distance = float('inf')
         
         for elem in elements:
+            # verificar se o texto da âncora não é numérico
+            if re.fullmatch(r'\d+', elem['text'].strip()):
+                continue
             # Verificar se está na mesma linha (tolerância Y) e à esquerda
             if (abs(elem['y'] - value_y) <= Y_TOLERANCE_SAME_LINE and 
                 elem['x'] < value_x):
@@ -225,6 +230,7 @@ class PatternBuilder:
     def _find_anchor_above(self, value_element: Dict[str, Any], elements: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
         Encontra uma âncora acima do elemento de valor (mesma coluna).
+        A âncora não pode ser um número.
         
         Args:
             value_element: Elemento que contém o valor
@@ -240,6 +246,9 @@ class PatternBuilder:
         min_distance = float('inf')
         
         for elem in elements:
+            # verificar se o texto da âncora não é numérico
+            if re.fullmatch(r'\d+', elem['text'].strip()):
+                continue
             # Verificar se está acima (Y menor) e na mesma coluna (tolerância X)
             if (elem['y'] < value_y and 
                 abs(elem['x'] - value_x) <= X_TOLERANCE_SAME_COLUMN):
