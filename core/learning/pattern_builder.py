@@ -13,7 +13,7 @@ COMMON_PATTERNS = {
     'data': {'pattern': r'\d{2}/\d{2}/\d{4}', 'confidence': 1.0},
     'numero_inscricao': {'pattern': r'\d{5,8}', 'confidence': 1.0},
     'numero': {'pattern': r'\d+', 'confidence': 0.7},
-    'texto': {'pattern': r'.+', 'confidence': 0.7},
+    'texto': {'pattern': r'^[^\d]+$', 'confidence': 0.7},
     'outros': {'pattern': r'.+', 'confidence': 0.7},
 }
 

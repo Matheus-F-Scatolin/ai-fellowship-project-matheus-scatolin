@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.connectors.llm_connector import LLMConnector
 from core.learning.pattern_builder import PatternBuilder
+from core.learning.rule_executor import RuleExecutor
 
 
 def converter_elementos_para_dicionarios(elements_raw):
@@ -66,6 +67,33 @@ def converter_elementos_para_dicionarios(elements_raw):
         elements_converted.append(element_dict)
     
     return elements_converted
+
+def converter_padroes_para_rules(padroes_extraidos: dict) -> list:
+    """
+    Converte padrões extraídos pelo PatternBuilder para o formato esperado pelo RuleExecutor.
+    
+    Args:
+        padroes_extraidos: Dicionário com padrões extraídos {campo: {type, data, confidence}}
+        
+    Returns:
+        Lista de regras no formato do RuleExecutor
+    """
+    rules = []
+    
+    for campo, padrao_info in padroes_extraidos.items():
+        rule_type = padrao_info["type"]
+        rule_data = padrao_info["data"]
+        
+        # Converter para o formato do RuleExecutor
+        rule = {
+            "field_name": campo,
+            "rule_type": rule_type,
+            "rule_data": json.dumps(rule_data)
+        }
+        
+        rules.append(rule)
+    
+    return rules
 
 def teste_real_oab():
     """Teste real com padrões extraídos do PDF oab_1.pdf e aplicação no oab_2.pdf"""
@@ -218,7 +246,13 @@ def teste_real_oab():
         elements_pdf2 = converter_elementos_para_dicionarios(elements_raw_pdf2)
         print(f"📊 Elementos convertidos no PDF 2: {len(elements_pdf2)}")
         
-        resultado_pdf2_padroes = aplicar_padroes_extraidos(padroes_extraidos, elements_pdf2)
+        # Converter padrões extraídos para formato do RuleExecutor
+        rules_for_executor = converter_padroes_para_rules(padroes_extraidos)
+        print(f"📊 Regras convertidas para RuleExecutor: {len(rules_for_executor)}")
+        
+        # Aplicar regras usando RuleExecutor
+        rule_executor = RuleExecutor()
+        resultado_pdf2_padroes = rule_executor.execute_all_rules(rules_for_executor, elements_pdf2)
         
         print("\n✅ Aplicação de padrões concluída!")
         print("📊 Resultado obtido com padrões:")
@@ -239,149 +273,6 @@ def teste_real_oab():
         print(f"❌ Erro durante a execução: {e}")
         import traceback
         traceback.print_exc()
-
-
-def aplicar_padroes_extraidos(padroes_extraidos: dict, elements: list) -> dict:
-    """
-    Aplica os padrões extraídos em novos elementos para extrair dados.
-    
-    Args:
-        padroes_extraidos: Dicionário com padrões extraídos do primeiro PDF
-        elements: Lista de elementos do segundo PDF
-        
-    Returns:
-        Dicionário com valores extraídos usando os padrões
-    """
-    import re
-    from core.learning.pattern_builder import Y_TOLERANCE_SAME_LINE, X_TOLERANCE_SAME_COLUMN
-    
-    resultado = {}
-    
-    print("\n🔍 Aplicando padrões extraídos:")
-    
-    for campo, padrao_info in padroes_extraidos.items():
-        print(f"\n   🔎 Processando campo '{campo}':")
-        
-        rule_type = padrao_info["type"]
-        rule_data = padrao_info["data"]
-        confidence = padrao_info["confidence"]
-        
-        valor_encontrado = None
-        
-        if rule_type == "none":
-            print(f"      ⚠️  Sem padrão disponível ({rule_data.get('reason', 'unknown')})")
-            resultado[campo] = None
-            continue
-        
-        elif rule_type == "regex":
-            # Aplicar padrão regex
-            pattern = rule_data["regex"]
-            print(f"      🔍 Aplicando regex: {pattern}")
-            
-            for elem in elements:
-                text = elem.get('text', '')
-                match = re.search(pattern, text)
-                if match:
-                    valor_encontrado = match.group()
-                    print(f"      ✅ Match regex encontrado: '{valor_encontrado}'")
-                    break
-        
-        elif rule_type == "relative_context":
-            # Aplicar padrão de contexto relativo
-            anchor_text = rule_data["anchor_text"]
-            direction = rule_data["direction"]
-            print(f"      🔍 Procurando âncora '{anchor_text}' -> {direction}")
-            
-            # Encontrar elemento âncora
-            anchor_element = None
-            for elem in elements:
-                if anchor_text.lower() in elem.get('text', '').lower():
-                    anchor_element = elem
-                    break
-            
-            if anchor_element:
-                print(f"      ✅ Âncora encontrada: '{anchor_element['text']}'")
-                
-                if direction == "right":
-                    # Procurar à direita (mesma linha)
-                    anchor_y = anchor_element['y']
-                    anchor_x = anchor_element['x']
-                    
-                    for elem in elements:
-                        if (abs(elem['y'] - anchor_y) <= Y_TOLERANCE_SAME_LINE and 
-                            elem['x'] > anchor_x):
-                            valor_encontrado = elem['text']
-                            print(f"      ✅ Valor à direita encontrado: '{valor_encontrado}'")
-                            break
-                            
-                elif direction == "below":
-                    # Procurar abaixo (mesma coluna)
-                    anchor_y = anchor_element['y']
-                    anchor_x = anchor_element['x']
-                    
-                    for elem in elements:
-                        if (elem['y'] > anchor_y and 
-                            abs(elem['x'] - anchor_x) <= X_TOLERANCE_SAME_COLUMN):
-                            valor_encontrado = elem['text']
-                            print(f"      ✅ Valor abaixo encontrado: '{valor_encontrado}'")
-                            break
-            else:
-                print(f"      ❌ Âncora '{anchor_text}' não encontrada")
-        
-        elif rule_type == "position":
-            # Aplicar padrão de posição
-            rel_x = rule_data["rel_x"]
-            rel_y = rule_data["rel_y"]
-            tolerance = rule_data["tolerance"]
-            print(f"      🔍 Procurando posição relativa ({rel_x:.3f}, {rel_y:.3f}) ±{tolerance}")
-            
-            for elem in elements:
-                if all(key in elem for key in ['x', 'y', 'page_width', 'page_height']):
-                    elem_rel_x = elem['x'] / elem['page_width']
-                    elem_rel_y = elem['y'] / elem['page_height']
-                    
-                    if (abs(elem_rel_x - rel_x) <= tolerance and 
-                        abs(elem_rel_y - rel_y) <= tolerance):
-                        valor_encontrado = elem['text']
-                        print(f"      ✅ Valor na posição encontrado: '{valor_encontrado}'")
-                        break
-        
-        elif rule_type == "hybrid":
-            # Aplicar regras híbridas (tentar todas e escolher a melhor)
-            print(f"      🔗 Aplicando {len(rule_data['rules'])} regras híbridas:")
-            
-            candidatos = []
-            
-            for i, rule in enumerate(rule_data['rules']):
-                print(f"         {i+1}. Testando regra {rule['type']}...")
-                
-                # Simular aplicação recursiva de cada sub-regra
-                sub_padrao = {campo: {"type": rule['type'], "data": rule['data'], "confidence": rule['confidence']}}
-                sub_resultado = aplicar_padroes_extraidos(sub_padrao, elements)
-                
-                if sub_resultado.get(campo):
-                    candidatos.append({
-                        "valor": sub_resultado[campo],
-                        "confidence": rule['confidence'],
-                        "tipo": rule['type']
-                    })
-                    print(f"            ✅ Candidato: '{sub_resultado[campo]}' (conf: {rule['confidence']:.2f})")
-            
-            # Escolher candidato com maior confiança
-            if candidatos:
-                melhor_candidato = max(candidatos, key=lambda x: x['confidence'])
-                valor_encontrado = melhor_candidato['valor']
-                print(f"      🏆 Melhor candidato: '{valor_encontrado}' ({melhor_candidato['tipo']})")
-        
-        # Atribuir resultado
-        resultado[campo] = valor_encontrado
-        
-        if valor_encontrado:
-            print(f"      ✅ Campo '{campo}' extraído: '{valor_encontrado}'")
-        else:
-            print(f"      ❌ Campo '{campo}' não encontrado")
-    
-    return resultado
 
 
 def comparar_resultados(esperado: dict, resultado_gpt: dict, resultado_padroes: dict):
