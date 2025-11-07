@@ -6,3 +6,4 @@ openai
 pymupdf
 diskcache
 requests
+pytest

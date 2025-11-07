@@ -35,22 +35,37 @@ OPENAI_API_KEY=sua_chave_aqui
 python start_api.py
 ```
 
-### 3. Processar Dataset Completo
-Colocar o arquivo dataset.json com os paths, schemas e labels na raiz do projeto (substituir o existente) e executar o script para processar todos os PDFs:
+### 3. Usar a Interface Web (UI)
+
+Após iniciar a API, abra o arquivo `frontend/index.html` no seu navegador para usar a interface web:
+
+1. **Abrir a UI**: Encontre o arquivo `frontend/index.html` e abra no navegador
+2. **Preencher o formulário**:
+   - **Label**: Tipo do documento (ex: `carteira_oab`)
+   - **Schema**: JSON com os campos que deseja extrair
+   - **Arquivo**: Selecione um PDF para processar
+3. **Extrair Dados**: Clique em "Extrair Dados" e veja os resultados formatados
+
+A interface é moderna, responsiva e mostra:
+- ✨ Dados extraídos em formato organizado e legível
+- 🔧 Metadados da pipeline (tempo, cache hits, etc.)
+
+### 4. Processar Dataset Completo
+Colocar o arquivo dataset.json com os paths, schemas e labels na raiz do projeto (substituir o existente) e os pdfs na pasta files/. Depois, executar o script para processar todos os PDFs:
 ```bash
 # Abrir outro terminal (e ativar o ambiente virtual) e executar:
 python extract_from_dataset.py
 ```
 Após isso, os resultados aparecerão no terminal um a um e serão salvos em outputs.json.
 
-### 4. Executar Testes Unitários (Opcional)
+### 5. Executar Testes Unitários (Opcional)
 
 ```bash
 # Todos os testes
 python -m pytest unit_tests/ -v
 
 # Teste específico
-python -m pytest unit_tests/test_api_server.py -v
+python -m pytest unit_tests/test_pattern_builder.py -v
 ```
 
 ## 🎯 Desafios Mapeados e Soluções Propostas

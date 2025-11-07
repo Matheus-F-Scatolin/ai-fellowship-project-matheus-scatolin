@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrator de Dados PDF</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <hgroup>
+                <h1>🚀 Extrator de Dados PDF</h1>
+                <h2>Desafio Enter AI Fellowship</h2>
+            </hgroup>
+        </header>
+
+        <article>
+            <form id="extract-form">
+                <label for="label">
+                    Label (Tipo de Documento)
+                    <input type="text" id="label" name="label" placeholder="ex: carteira_oab" required>
+                </label>
+
+                <label for="extraction_schema">
+                    Schema de Extração (JSON)
+                    <textarea 
+                        id="extraction_schema" 
+                        name="extraction_schema" 
+                        rows="5" 
+                        placeholder='{
+  "nome": "Nome completo do profissional",
+  "inscricao": "Número de inscrição do profissional",
+  "seccional": "Seccional do profissional"
+}' 
+                        required></textarea>
+                    <small style="color: var(--pico-muted-color); margin-top: 0.25rem; display: block;">
+                        💡 Digite apenas os campos que deseja extrair no formato {"campo": "descrição"}
+                    </small>
+                </label>
+
+                <label for="file">
+                    Arquivo PDF
+                    <input type="file" id="file" name="file" accept=".pdf" required>
+                </label>
+
+                <button type="submit" id="submit-button">
+                    <span id="button-text">Extrair Dados</span>
+                    <span id="spinner" class="spinner" hidden></span>
+                </button>
+            </form>
+        </article>
+
+        <section id="result-section" hidden>
+            <h2>📊 Resultados da Extração</h2>
+            
+            <div id="error-message" class="error" hidden></div>
+            
+            <!-- Dados Extraídos -->
+            <article>
+                <header>
+                    <h3>🎯 Dados Extraídos</h3>
+                </header>
+                <div id="result-data-container"></div>
+            </article>
+            
+            <!-- Metadados (colapsível) -->
+            <details id="metadata-details">
+                <summary>🔧 Ver Metadados da Pipeline</summary>
+                <pre><code id="result-metadata" class="language-json"></code></pre>
+            </details>
+        </section>
+    </main>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

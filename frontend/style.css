@@ -1,0 +1,145 @@
+/* Container principal */
+main.container {
+    max-width: 800px;
+    margin-top: 2rem;
+    margin-bottom: 5rem;
+}
+
+/* --- Botão de Submit (remove conflito com spinner do Pico.css) --- */
+#submit-button[aria-busy="true"] {
+    pointer-events: none;
+}
+
+/* Remove o spinner nativo do Pico.css para usar o nosso */
+#submit-button[aria-busy="true"]::after {
+    display: none !important;
+}
+
+/* --- Spinner de Carregamento Customizado --- */
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: middle;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+    margin-left: 0.5rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Validação em Tempo Real do JSON --- */
+#extraction_schema.json-valid {
+    border-color: var(--pico-ins-color) !important;
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+#extraction_schema.json-invalid {
+    border-color: var(--pico-del-color) !important;
+    box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.2);
+}
+
+.json-error-message {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Seção de Resultados --- */
+#result-section {
+    margin-top: 2rem;
+}
+
+/* Caixa de Erro */
+.error {
+    color: var(--pico-del-color);
+    background-color: var(--pico-del-background);
+    border: 1px solid var(--pico-del-border);
+    border-left: 4px solid var(--pico-del-color);
+    padding: 1rem;
+    border-radius: var(--pico-border-radius);
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.error p {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.error p:first-child {
+    margin-top: 0;
+}
+
+.error p:last-child {
+    margin-bottom: 0;
+}
+
+/* --- Visualização Melhorada dos Dados JSON --- */
+.json-viewer {
+    background: var(--pico-card-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.json-field {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: var(--pico-code-background-color);
+    border-radius: 4px;
+    border-left: 4px solid var(--pico-primary);
+}
+
+.json-field-key {
+    font-weight: bold;
+    color: var(--pico-primary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.json-field-value {
+    color: var(--pico-color);
+    font-family: var(--pico-font-family-monospace);
+    font-size: 1rem;
+    word-break: break-word;
+    background: var(--pico-background-color);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--pico-muted-border-color);
+}
+
+.json-field-value.null-value {
+    color: var(--pico-muted-color);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Caixas de Código JSON (para metadados) */
+pre code {
+    padding: 1rem !important;
+    border-radius: var(--pico-border-radius);
+}
+
+/* Detalhes dos Metadados */
+#metadata-details {
+    margin-top: 2rem;
+}
+#metadata-details summary {
+    cursor: pointer;
+    color: var(--pico-muted-color);
+    font-size: 0.9rem;
+}
