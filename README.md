@@ -51,6 +51,16 @@ A interface é moderna, responsiva e mostra:
 - 🔧 Metadados da pipeline (tempo, cache hits, etc.)
 
 Se quiser, teste enviar o mesmo PDF várias vezes para ver o efeito do cache! Além disso, depois de ter enviado um mesmo template 2 vezes, remova campos do schema e rode a extração novamente para observar o aprendizado de templates. É possível, também, enviar PDFs similares para ver o matching estrutural em ação.
+ 
+#### 📷 Screenshots da Interface
+
+Abaixo estão capturas da interface web para referência:
+
+![Tela inicial da UI](./images/UI.png)
+*Tela inicial da interface (formulário para extração).*
+
+![Resultado exibido pela UI](./images/UI_resultado.png)
+*Exemplo de resultado formatado exibido pela interface.*
 
 ### 4. Processar Dataset Completo
 Colocar o arquivo dataset.json com os paths, schemas e labels na raiz do projeto (substituir o existente) e os pdfs na pasta files/. Depois, executar o script para processar todos os PDFs:
