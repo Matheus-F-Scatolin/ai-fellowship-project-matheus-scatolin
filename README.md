@@ -168,6 +168,10 @@ ai-fellowship-project/
 │       ├── 💾 caching.py      # Sistema de cache
 │       ├── 🗄️ database.py     # Banco de dados SQLite
 │       └── 🔑 key_gen.py      # Geração de chaves
+├── 📂 frontend/             # Interface web para usuário
+│   ├── 🌐 index.html        # Página principal da UI
+│   ├── 🎨 style.css         # Estilos e design responsivo
+│   └── ⚡ app.js            # Lógica JavaScript da interface
 ├── 📂 files/                # PDFs de teste
 ├── 📂 images/               # Diagramas da arquitetura
 ├── 📂 unit_tests/           # Testes unitários
