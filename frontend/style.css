@@ -59,6 +59,61 @@ main.container {
     margin-top: 2rem;
 }
 
+/* --- Informações de Performance --- */
+.performance-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--pico-card-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+.performance-metric {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--pico-code-background-color);
+    border-radius: 6px;
+}
+
+.performance-metric-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.performance-metric-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--pico-color);
+}
+
+.performance-metric-value.time {
+    color: var(--pico-primary);
+}
+
+.performance-metric-value.method {
+    color: var(--pico-secondary);
+    font-size: 0.9rem;
+}
+
+.performance-metric-value.size {
+    color: var(--pico-contrast);
+}
+
+.pipeline-steps {
+    font-size: 0.8rem;
+    color: var(--pico-muted-color);
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
 /* Caixa de Erro */
 .error {
     color: var(--pico-del-color);

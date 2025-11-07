@@ -256,6 +256,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = result.data;
         const metadata = result.metadata;
         
+        // Exibe informações de performance
+        displayPerformanceInfo(metadata);
+        
         // Cria visualização bonita para os dados extraídos
         displayJsonData(data, resultDataContainer);
         
@@ -267,6 +270,110 @@ document.addEventListener("DOMContentLoaded", () => {
         // Mostra a seção de resultados
         resultSection.hidden = false;
         errorEl.hidden = true;
+    }
+
+    /**
+     * Exibe informações de performance da extração
+     * @param {object} metadata - Metadados da resposta da API
+     */
+    function displayPerformanceInfo(metadata) {
+        const performanceContainer = document.getElementById("performance-info");
+        performanceContainer.innerHTML = '';
+
+        // Extrai informações dos metadados
+        const requestTime = metadata.request_time || 0;
+        const fileName = metadata.file_name || 'arquivo';
+        const fileSize = metadata.file_size || 0;
+        const method = metadata._pipeline?.method || 'N/A';
+        const steps = metadata._pipeline?.steps || [];
+
+        // Cria métricas
+        const metrics = [
+            {
+                label: '⏱️ Tempo de Extração',
+                value: `${requestTime.toFixed(2)}s`,
+                className: 'time'
+            },
+            {
+                label: '🔧 Método Usado',
+                value: formatPipelineMethod(method),
+                className: 'method'
+            },
+            {
+                label: `📏 Tamanho de ${fileName}`,
+                value: formatFileSize(fileSize),
+                className: 'size'
+            }
+        ];
+
+        // Cria elementos HTML para cada métrica
+        metrics.forEach(metric => {
+            const metricDiv = document.createElement('div');
+            metricDiv.className = 'performance-metric';
+
+            const label = document.createElement('span');
+            label.className = 'performance-metric-label';
+            label.textContent = metric.label;
+
+            const value = document.createElement('span');
+            value.className = `performance-metric-value ${metric.className}`;
+            value.textContent = metric.value;
+
+            metricDiv.appendChild(label);
+            metricDiv.appendChild(value);
+
+            // Adiciona subtítulo se houver
+            if (metric.subtitle) {
+                const subtitle = document.createElement('div');
+                subtitle.className = 'pipeline-steps';
+                subtitle.textContent = metric.subtitle;
+                metricDiv.appendChild(subtitle);
+            }
+
+            performanceContainer.appendChild(metricDiv);
+        });
+    }
+
+    /**
+     * Formata o método da pipeline de forma mais legível
+     * @param {string} method - Método da pipeline
+     * @returns {string} Método formatado
+     */
+    function formatPipelineMethod(method) {
+        if (!method || method === 'N/A') return 'N/A';
+        
+        // Mapeia métodos para nomes mais amigáveis
+        const methodMap = {
+            'llm-full': '🤖 LLM Completo',
+            'cache-l1': '💾 Cache L1',
+            'cache-l2': '💾 Cache L2', 
+            'cache-l3': '🔄 Cache L3',
+            'template': '🎭 Template',
+            'llm-fallback': '🆘 LLM Fallback'
+        };
+
+        // Se contém '->', é uma sequência de métodos
+        if (method.includes('->')) {
+            const parts = method.split('->');
+            return parts.map(part => methodMap[part.trim()] || part.trim()).join(' → ');
+        }
+
+        return methodMap[method] || method;
+    }
+
+    /**
+     * Formata o tamanho do arquivo de forma legível
+     * @param {number} bytes - Tamanho em bytes
+     * @returns {string} Tamanho formatado
+     */
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
     }
 
     /**

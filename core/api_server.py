@@ -134,6 +134,7 @@ class ExtractionPipeline:
                 self.stats["cache_hits_l1_l2"] += 1
                 pipeline_metadata["method"] = "cache-l2"
                 cached_result["_pipeline"] = pipeline_metadata
+                cached_result["metadata"]["method"] = "cache-l2"
                 if "data" in cached_result and isinstance(cached_result["data"], dict):
                     return cached_result["data"]
                 return cached_result
