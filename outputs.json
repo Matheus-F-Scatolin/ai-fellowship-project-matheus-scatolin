@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-06T22:39:37.357844",
+  "timestamp": "2025-11-06T23:29:12.462270",
   "total_casos": 6,
   "api_base_url": "http://localhost:8000",
   "casos": [
@@ -18,7 +18,7 @@
         "situacao": "Situação do profissional, normalmente no canto inferior direito."
       },
       "sucesso": true,
-      "tempo_processamento": 8.362897157669067,
+      "tempo_processamento": 10.005981922149658,
       "resultado": {
         "success": true,
         "data": {
@@ -32,7 +32,7 @@
           "situacao": "SITUAÇÃO REGULAR"
         },
         "metadata": {
-          "request_time": 6.260177850723267,
+          "request_time": 7.943089962005615,
           "file_name": "oab_1.pdf",
           "file_size": 842499,
           "label": "carteira_oab",
@@ -69,20 +69,20 @@
         "situacao": "Situação do profissional, normalmente no canto inferior direito."
       },
       "sucesso": true,
-      "tempo_processamento": 6.509881496429443,
+      "tempo_processamento": 5.3263161182403564,
       "resultado": {
         "success": true,
         "data": {
           "nome": "LUIS FILIPE ARAUJO AMARAL",
           "inscricao": "101943",
-          "seccional": "PR CONSELHO SECCIONAL - PARANÁ",
-          "subsecao": null,
+          "seccional": "PR",
+          "subsecao": "CONSELHO SECCIONAL - PARANÁ",
           "categoria": "SUPLEMENTAR",
           "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista, SÃO PAULO - SP, 01310300",
           "situacao": "SITUAÇÃO REGULAR"
         },
         "metadata": {
-          "request_time": 4.473983287811279,
+          "request_time": 3.272686719894409,
           "file_name": "oab_2.pdf",
           "file_size": 758470,
           "label": "carteira_oab",
@@ -118,20 +118,20 @@
         "situacao": "Situação do profissional, normalmente no canto inferior direito."
       },
       "sucesso": true,
-      "tempo_processamento": 5.477001667022705,
+      "tempo_processamento": 3.8304874897003174,
       "resultado": {
         "success": true,
         "data": {
           "nome": "SON GOKU",
           "inscricao": "101943",
           "seccional": "PR",
+          "subsecao": "CONSELHO SECCIONAL - PARANÁ",
           "categoria": "SUPLEMENTAR",
           "situacao": "SITUAÇÃO REGULAR",
-          "subsecao": "CONSELHO SECCIONAL - PARANÁ",
           "telefone_profissional": null
         },
         "metadata": {
-          "request_time": 3.433018922805786,
+          "request_time": 1.756242036819458,
           "file_name": "oab_3.pdf",
           "file_size": 525027,
           "label": "carteira_oab",
@@ -168,7 +168,7 @@
         "tipo_de_sistema": "Tipo de sistema"
       },
       "sucesso": true,
-      "tempo_processamento": 4.266323089599609,
+      "tempo_processamento": 4.005303382873535,
       "resultado": {
         "success": true,
         "data": {
@@ -181,7 +181,7 @@
           "tipo_de_sistema": null
         },
         "metadata": {
-          "request_time": 2.2181103229522705,
+          "request_time": 1.9299054145812988,
           "file_name": "tela_sistema_1.pdf",
           "file_size": 67110,
           "label": "tela_sistema",
@@ -215,7 +215,7 @@
         "cidade": "Cidade da operação selectionada"
       },
       "sucesso": true,
-      "tempo_processamento": 4.806131601333618,
+      "tempo_processamento": 3.8508241176605225,
       "resultado": {
         "success": true,
         "data": {
@@ -226,7 +226,7 @@
           "cidade": "Mozarlândia"
         },
         "metadata": {
-          "request_time": 2.751864433288574,
+          "request_time": 1.7719345092773438,
           "file_name": "tela_sistema_2.pdf",
           "file_size": 74439,
           "label": "tela_sistema",
@@ -256,7 +256,7 @@
         "total_de_parcelas": "Valor total, normalmente no canto inferior esquerdo da imagem"
       },
       "sucesso": true,
-      "tempo_processamento": 4.98348331451416,
+      "tempo_processamento": 3.6705970764160156,
       "resultado": {
         "success": true,
         "data": {
@@ -265,7 +265,7 @@
           "total_de_parcelas": "96"
         },
         "metadata": {
-          "request_time": 2.9183237552642822,
+          "request_time": 1.601670503616333,
           "file_name": "tela_sistema_3.pdf",
           "file_size": 142105,
           "label": "tela_sistema",
@@ -288,7 +288,7 @@
     "casos_processados": 6,
     "casos_com_erro": 0,
     "taxa_sucesso": 100.0,
-    "tempo_total_segundos": 34.433390617370605,
-    "tempo_medio_por_caso": 5.7388984362284345
+    "tempo_total_segundos": 30.739365339279175,
+    "tempo_medio_por_caso": 5.123227556546529
   }
 }
