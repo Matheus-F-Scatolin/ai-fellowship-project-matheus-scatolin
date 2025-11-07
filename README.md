@@ -149,11 +149,8 @@ ai-fellowship-project/
 ├── 📄 README.md
 ├── 📦 requirements.txt
 ├── 🔧 start_api.py          # Script para iniciar a API
-├── 🧪 test_api_real.py      # Teste completo com PDFs reais
-├── 📝 exemplo_api.py        # Exemplo simples de uso
-├── �️ extract_from_dataset.py # Processa dataset.json completo
-├── 📊 analyze_outputs.py    # Analisa resultados do processamento
-├── �📊 dataset.json          # Dataset com casos de teste
+├── 📖 extract_from_dataset.py # Processa dataset.json completo
+├── 📊 dataset.json          # Dataset com casos de teste
 ├── 📄 outputs.json          # Resultados do processamento (gerado)
 ├── 📂 core/
 │   ├── 🌐 api_server.py        # API FastAPI principal
@@ -192,7 +189,7 @@ ai-fellowship-project/
 ## 💡 Inovações Técnicas
 
 ### 🎯 **Cache Multi-Layer Inteligente**
-Sistema de cache em 3 camadas que reduz drasticamente chamadas para LLM:
+Sistema de cache em 3 camadas que reduz chamadas para LLM:
 - **L1**: Memória RAM com LRU eviction
 - **L2**: Persistência em disco entre sessões
 - **L3**: Cache parcial por campos individuais
