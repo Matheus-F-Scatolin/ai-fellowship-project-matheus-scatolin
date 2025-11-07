@@ -183,11 +183,11 @@ ai-fellowship-project/
 - **FastAPI** - API web moderna e rápida
 - **OpenAI GPT** - Extração de dados com IA
 - **PyMuPDF** - Parsing preciso de PDFs com coordenadas
-- **Unstructured** - Parsing de PDFs como fallback
 - **SQLite** - Banco de dados para templates
 - **Diskcache** - Cache persistente em disco
 - **Pydantic** - Validação de dados
 - **Pytest** - Testes automatizados
+- **HTML/CSS/JavaScript** - Construção da interface web responsiva
 
 ## 💡 Inovações Técnicas
 
