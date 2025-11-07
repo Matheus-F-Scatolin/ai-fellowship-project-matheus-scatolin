@@ -30,11 +30,12 @@ python start_api.py
 ```
 
 ### 3. Processar Dataset Completo
-
+Colocar o arquivo dataset.json com os paths, schemas e labels na raiz do projeto (substituir o existente) e executar o script para processar todos os PDFs:
 ```bash
-# Processar todos os casos do arquivo dataset.json, gerando o arquivo outputs.json
+# Abrir outro terminal (e ativar o ambiente virtual) e executar:
 python extract_from_dataset.py
 ```
+Após isso, os resultados aparecerão no terminal um a um e serão salvos em outputs.json.
 
 ### 4. Executar Testes Unitários (Opcional)
 
@@ -140,7 +141,7 @@ ai-fellowship-project/
 └── 📂 persistent_data/      # Dados persistentes (cache/DB)
 ```
 
-## � Tecnologias Utilizadas
+## ⚙️ Tecnologias Utilizadas
 
 - **FastAPI** - API web moderna e rápida
 - **OpenAI GPT** - Extração de dados com IA
