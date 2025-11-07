@@ -9,6 +9,9 @@ Sistema completo de extração de dados de PDFs usando IA, com cache multicamada
 ### 1. Instalação
 
 ```bash
+# Clone o repositório
+git clone https://github.com/Matheus-F-Scatolin/ai-fellowship-project-matheus-scatolin.git
+
 # Crie e ative um ambiente virtual (opcional)
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
