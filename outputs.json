@@ -1,0 +1,614 @@
+{
+  "timestamp": "2025-11-06T20:37:39.047990",
+  "total_casos": 10,
+  "api_base_url": "http://localhost:8000",
+  "casos": [
+    {
+      "caso_numero": 1,
+      "pdf_path": "oab_1.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0778419971466064,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "JOANA D'ARC",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471429.9470248
+        },
+        "metadata": {
+          "request_time": 0.0017561912536621094,
+          "file_name": "oab_1.pdf",
+          "file_size": 842499,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 2,
+      "pdf_path": "oab_1.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.072187900543213,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "JOANA D'ARC",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471429.9470248
+        },
+        "metadata": {
+          "request_time": 0.0020165443420410156,
+          "file_name": "oab_1.pdf",
+          "file_size": 842499,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L1_MEMORY"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 3,
+      "pdf_path": "oab_1.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0749871730804443,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "JOANA D'ARC",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471429.9470248
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "oab_1.pdf",
+          "file_size": 842499,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L1_MEMORY"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 4,
+      "pdf_path": "oab_1.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0684773921966553,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "JOANA D'ARC",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471429.9470248
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "oab_1.pdf",
+          "file_size": 842499,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L1_MEMORY"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 5,
+      "pdf_path": "oab_1.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.057438611984253,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "JOANA D'ARC",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471429.9470248
+        },
+        "metadata": {
+          "request_time": 0.002311229705810547,
+          "file_name": "oab_1.pdf",
+          "file_size": 842499,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L1_MEMORY"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 6,
+      "pdf_path": "oab_2.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "endereco_profissional": "Endereço do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0809361934661865,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "LUIS FILIPE ARAUJO AMARAL",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "endereco_profissional": "AVENIDA PAULISTA, Nº 2300 andar Pilotis, Bela Vista SÃO PAULO - SP 01310300",
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template",
+            "steps": [
+              "cache-l3",
+              "template"
+            ]
+          },
+          "timestamp": 1762471432.507182
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "oab_2.pdf",
+          "file_size": 758470,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "endereco_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 7,
+      "pdf_path": "oab_3.pdf",
+      "label": "carteira_oab",
+      "schema": {
+        "nome": "Nome do profissional, normalmente no canto superior esquerdo da imagem",
+        "inscricao": "Número de inscrição do profissional",
+        "seccional": "Seccional do profissional",
+        "subsecao": "Subseção à qual o profissional faz parte",
+        "categoria": "Categoria, pode ser ADVOGADO, ADVOGADA, SUPLEMENTAR, ESTAGIARIO, ESTAGIARIA",
+        "telefone_profissional": "Telefone do profissional",
+        "situacao": "Situação do profissional, normalmente no canto inferior direito."
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.075230836868286,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "nome": "SON GOKU",
+            "inscricao": "101943",
+            "seccional": "PR",
+            "subsecao": "CONSELHO SECCIONAL - PARANÁ",
+            "categoria": "SUPLEMENTAR",
+            "telefone_profissional": null,
+            "situacao": "SITUAÇÃO REGULAR"
+          },
+          "metadata": {
+            "method": "cache-l3->template->llm-fallback",
+            "steps": [
+              "cache-l3",
+              "template",
+              "llm-fallback"
+            ]
+          },
+          "timestamp": 1762471436.6208696
+        },
+        "metadata": {
+          "request_time": 0.0019991397857666016,
+          "file_name": "oab_3.pdf",
+          "file_size": 525027,
+          "label": "carteira_oab",
+          "schema_fields": [
+            "nome",
+            "inscricao",
+            "seccional",
+            "subsecao",
+            "categoria",
+            "telefone_profissional",
+            "situacao"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 8,
+      "pdf_path": "tela_sistema_1.pdf",
+      "label": "tela_sistema",
+      "schema": {
+        "data_base": "Data base da operação selectionada",
+        "data_vencimento": "Data de vencimento da operação selectionada",
+        "quantidade_parcelas": "Quantidade de parcelas da operação selectionada",
+        "produto": "Produto da operação selectionada",
+        "sistema": "Sistema da operação selectionada",
+        "tipo_de_operacao": "Tipo de operação",
+        "tipo_de_sistema": "Tipo de sistema"
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0735371112823486,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "data_base": "05/09/2025",
+            "data_vencimento": "03/09/2025",
+            "quantidade_parcelas": null,
+            "produto": null,
+            "sistema": "CONSIGNADO",
+            "tipo_de_operacao": null,
+            "tipo_de_sistema": null
+          },
+          "metadata": {
+            "method": "llm-full",
+            "steps": [
+              "llm-full"
+            ]
+          },
+          "timestamp": 1762471441.9244213
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "tela_sistema_1.pdf",
+          "file_size": 67110,
+          "label": "tela_sistema",
+          "schema_fields": [
+            "data_base",
+            "data_vencimento",
+            "quantidade_parcelas",
+            "produto",
+            "sistema",
+            "tipo_de_operacao",
+            "tipo_de_sistema"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 9,
+      "pdf_path": "tela_sistema_2.pdf",
+      "label": "tela_sistema",
+      "schema": {
+        "pesquisa_por": "Na consulta de cobrança, a pesquisa é efetuado por? Ela pode ser feita por cliente, parente, prestador ou outro",
+        "pesquisa_tipo": "Tipo de pesquisa, pode ser por cpf, cnpj, Nome ou email",
+        "sistema": "Sistema da operação selectionada",
+        "valor_parcela": "Valor da parcela da operação selectionada",
+        "cidade": "Cidade da operação selectionada"
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0237908363342285,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "pesquisa_por": "CLIENTE",
+            "pesquisa_tipo": "CPF",
+            "sistema": "CONSIGNADO",
+            "valor_parcela": "2.372,64",
+            "cidade": "Mozarlândia"
+          },
+          "metadata": {
+            "method": "llm-full",
+            "steps": [
+              "llm-full"
+            ]
+          },
+          "timestamp": 1762471445.7909834
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "tela_sistema_2.pdf",
+          "file_size": 74439,
+          "label": "tela_sistema",
+          "schema_fields": [
+            "pesquisa_por",
+            "pesquisa_tipo",
+            "sistema",
+            "valor_parcela",
+            "cidade"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    },
+    {
+      "caso_numero": 10,
+      "pdf_path": "tela_sistema_3.pdf",
+      "label": "tela_sistema",
+      "schema": {
+        "data_referencia": "Data de referencia da operação selectionada do detalhamento de saldos por parcelas",
+        "selecao_de_parcelas": "Seleção de parcelas da operação selectionada do detalhamento de saldos por parcelas, pode ser vencido, pago ou pendente",
+        "total_de_parcelas": "Valor total, normalmente no canto inferior esquerdo da imagem"
+      },
+      "sucesso": true,
+      "tempo_processamento": 2.0698463916778564,
+      "resultado": {
+        "success": true,
+        "data": {
+          "data": {
+            "data_referencia": "04/02/2021",
+            "selecao_de_parcelas": null,
+            "total_de_parcelas": "96"
+          },
+          "metadata": {
+            "method": "llm-full",
+            "steps": [
+              "llm-full"
+            ]
+          },
+          "timestamp": 1762471450.1066573
+        },
+        "metadata": {
+          "request_time": 0.0,
+          "file_name": "tela_sistema_3.pdf",
+          "file_size": 142105,
+          "label": "tela_sistema",
+          "schema_fields": [
+            "data_referencia",
+            "selecao_de_parcelas",
+            "total_de_parcelas"
+          ],
+          "_cache_info": {
+            "source": "L2_DISK"
+          },
+          "_pipeline": {
+            "method": "cache-l2",
+            "steps": []
+          }
+        }
+      }
+    }
+  ],
+  "estatisticas": {
+    "casos_processados": 10,
+    "casos_com_erro": 0,
+    "taxa_sucesso": 100.0,
+    "tempo_total_segundos": 20.691304445266724,
+    "tempo_medio_por_caso": 2.0691304445266723
+  }
+}

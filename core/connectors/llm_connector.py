@@ -4,7 +4,8 @@ import re
 from typing import Dict, Any, List
 import openai
 from dotenv import load_dotenv
-from unstructured.partition.pdf import partition_pdf
+from types import SimpleNamespace
+import pymupdf
 
 
 class LLMConnector:
@@ -50,100 +51,129 @@ class LLMConnector:
         )
         
         # 6. Retornar conteúdo da resposta
-        return response.choices[0].message.content
-    
+        result = response.choices[0].message.content
+
+        result_json_str = str(result[result.index('{'):result.rindex('}')+1])
+
+        return result_json_str
+
     def _parse_pdf_elements(self, pdf_path: str) -> List[Any]:
         """
-        Faz o parsing dos elementos do PDF usando unstructured.
-        
-        Args:
-            pdf_path: Caminho para o arquivo PDF
-            
-        Returns:
-            Lista de elementos extraídos do PDF
+        Faz o parsing dos elementos do PDF usando PyMuPDF.
+        Retorna lista de objetos compatíveis (cada item tem .text, .x, .y).
+        x,y correspondem ao canto superior-esquerdo do bbox (PyMuPDF: x0,y0).
         """
-        return partition_pdf(
-            filename=pdf_path,
-            strategy="fast",
-            languages=["por"],
-            infer_table_structure=True,
-            extract_element_metadata=True
-        )
-    
+        elements: List[Any] = []
+        doc = pymupdf.open(pdf_path)
+        try:
+            for page_index in range(len(doc)):
+                page = doc[page_index]
+                page_h = float(page.rect.height)
+                page_dict = page.get_text("dict")
+                for block in page_dict.get("blocks", []):
+                    if block.get("type", 1) != 0:
+                        continue
+                    for line in block.get("lines", []):
+                        for span in line.get("spans", []):
+                            text = span.get("text", "")
+                            if not text or not text.strip():
+                                continue
+                            bbox = span.get("bbox", None)  # [x0, y0, x1, y1], y0 = topo
+                            if bbox and len(bbox) >= 4:
+                                x0, y0, x1, y1 = bbox
+                                x = float(x0)
+                                y = float(y0)  # canto superior-esquerdo (origem no topo)
+                            else:
+                                x = 0.0
+                                y = 0.0
+                            elements.append(SimpleNamespace(text=text.strip(), x=x, y=y, page_index=page_index))
+        finally:
+            doc.close()
+        return elements
+
+
     def _build_structured_text(self, elements: List[Any]) -> str:
         """
-        Constrói texto estruturado a partir dos elementos, ordenando por posição.
-        
-        Args:
-            elements: Lista de elementos extraídos do PDF
-            
-        Returns:
-            Texto estruturado ordenado
+        Constrói texto estruturado a partir dos elementos (saída de _parse_pdf_elements),
+        ordenando por posição e agrupando por linhas.
+        Espera x,y sendo canto superior-esquerdo (y aumenta para baixo).
         """
         elements_data = []
-        
-        # Iterar pelos elementos e extrair dados
+
         for elem in elements:
-            # Filtrar elementos sem texto
-            if not elem.text or not elem.text.strip():
+            # extrair texto
+            text = None
+            x = None
+            y = None
+
+            if isinstance(elem, dict):
+                text = elem.get("text", None)
+                x = elem.get("x", None)
+                y = elem.get("y", None)
+            else:
+                text = getattr(elem, "text", None)
+                if hasattr(elem, "x") and hasattr(elem, "y"):
+                    x = float(getattr(elem, "x", 0.0))
+                    y = float(getattr(elem, "y", 0.0))
+                else:
+                    metadata = getattr(elem, "metadata", None)
+                    if metadata:
+                        coordinates = getattr(metadata, "coordinates", None)
+                        if coordinates and hasattr(coordinates, "points"):
+                            pts = coordinates.points
+                            if pts:
+                                point = pts[0]
+                                if isinstance(point, (tuple, list)) and len(point) >= 2:
+                                    # Compatibilidade: se ainda vier bottom-left, tentamos detectar
+                                    # Assume formato (x, y)
+                                    x, y = float(point[0]), float(point[1])
+                                else:
+                                    x = float(getattr(point, "x", 0.0) or 0.0)
+                                    y = float(getattr(point, "y", 0.0) or 0.0)
+
+            if not text or not str(text).strip():
                 continue
-                
-            # Extrair coordenadas dos metadados
-            x, y = 0, 0
-            if hasattr(elem, 'metadata') and elem.metadata:
-                coordinates = getattr(elem.metadata, 'coordinates', None)
-                if coordinates and hasattr(coordinates, 'points'):
-                    # Pegar o primeiro ponto como referência
-                    if coordinates.points:
-                        point = coordinates.points[0]
-                        # Verificar se point é uma tupla (x, y) ou um objeto com atributos
-                        if isinstance(point, (tuple, list)) and len(point) >= 2:
-                            x, y = point[0], point[1]
-                        else:
-                            # Fallback para o formato de objeto (caso ainda seja usado)
-                            x = getattr(point, 'x', 0)
-                            y = getattr(point, 'y', 0)
-            
+            if x is None:
+                x = 0.0
+            if y is None:
+                y = 0.0
+
             elements_data.append({
-                'text': elem.text.strip(),
-                'x': x,
-                'y': y
+                "text": str(text).strip(),
+                "x": float(x),
+                "y": float(y)
             })
-        
-        # Ordenar elementos por posição (y primeiro, depois x)
-        elements_data.sort(key=lambda e: (e['y'], e['x']))
-        
-        # Agrupar em linhas com tolerância para pequenas diferenças em y
+
+        # ordenar por y (topo -> baixo) depois x (esquerda -> direita)
+        elements_data.sort(key=lambda e: (e["y"], e["x"]))
+
+        # agrupar em linhas — tolerância em y (em unidades de coordenada)
         final_lines = []
         current_line = []
         line_ref_y = None
-        y_tolerance = 5  # Tolerância em unidades de coordenada
-        
+        y_tolerance = 5  # ajuste se necessário
+
         for elem in elements_data:
-            if not all(k in elem for k in ('text', 'x', 'y')):
+            if not all(k in elem for k in ("text", "x", "y")):
                 raise ValueError("Elemento inválido: faltando 'text', 'x' ou 'y' chave.")
             if line_ref_y is None:
-                # inicia primeira linha
                 current_line.append(elem)
-                line_ref_y = elem['y']
+                line_ref_y = elem["y"]
             else:
-                # compara com o y do primeiro elemento da linha atual
-                if abs(elem['y'] - line_ref_y) <= y_tolerance:
+                if abs(elem["y"] - line_ref_y) <= y_tolerance:
                     current_line.append(elem)
                 else:
-                    # Finalizar linha atual e começar nova
-                    current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
-                    line_text = " ".join([e['text'] for e in current_line_sorted])
+                    current_line_sorted = sorted(current_line, key=lambda e: e["x"])
+                    line_text = " ".join([e["text"] for e in current_line_sorted])
                     final_lines.append(line_text)
-                    # Começar nova linha
                     current_line = [elem]
-                    line_ref_y = elem['y']
+                    line_ref_y = elem["y"]
 
-        # Adicionar última linha
         if current_line:
-            current_line_sorted = sorted(current_line, key=lambda elem: elem['x'])
-            line_text = " ".join([e['text'] for e in current_line_sorted])
+            current_line_sorted = sorted(current_line, key=lambda e: e["x"])
+            line_text = " ".join([e["text"] for e in current_line_sorted])
             final_lines.append(line_text)
+
         return "\n".join(final_lines)
     
     def _generate_extraction_prompt(self, label: str, schema: Dict[str, str]) -> str:

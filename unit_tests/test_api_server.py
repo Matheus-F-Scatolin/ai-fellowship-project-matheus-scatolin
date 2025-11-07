@@ -32,8 +32,8 @@ class TestExtractionPipeline(unittest.TestCase):
         # Should have stats attribute
         self.assertTrue(hasattr(pipeline, 'stats'))
         self.assertIn('start_time', pipeline.stats)
-        self.assertTrue(hasattr(pipeline, 'initialized'))
-        self.assertTrue(pipeline.initialized)
+        self.assertTrue(hasattr(pipeline, '_initialized'))
+        self.assertTrue(pipeline._initialized)
         
     def test_extract_method(self):
         """Test the extract method returns expected structure"""
@@ -46,15 +46,14 @@ class TestExtractionPipeline(unittest.TestCase):
         # Should return a dictionary
         self.assertIsInstance(result, dict)
         
-        # Should contain expected fields
-        self.assertIn("field_1", result)
-        self.assertIn("field_2", result)
+        # Should contain expected fields (schema keys, not mock keys)
+        self.assertIn("field1", result["data"])
+        self.assertIn("field2", result["data"])
         self.assertIn("_pipeline", result)
         
-        # Check pipeline metadata
-        self.assertEqual(result["_pipeline"]["method"], "mock")
-        self.assertIsInstance(result["_pipeline"]["time"], (int, float))
-
+        # Check pipeline metadata structure
+        self.assertIn("method", result["_pipeline"])
+        self.assertIn("steps", result["_pipeline"])
 
 class TestPydanticModels(unittest.TestCase):
     """Unit tests for Pydantic models"""
@@ -122,7 +121,15 @@ class TestAPIEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         data = response.json()
-        self.assertEqual(data["message"], "stats_not_implemented_yet")
+        # Check for the new stats structure
+        self.assertIn("pipeline", data)
+        self.assertIn("cache", data)
+        self.assertIn("templates", data)
+        
+        # Check pipeline stats structure
+        pipeline_stats = data["pipeline"]
+        self.assertIn("total_requests", pipeline_stats)
+        self.assertIn("start_time", pipeline_stats)
         
     def test_extract_endpoint_success(self):
         """Test successful extraction endpoint"""
