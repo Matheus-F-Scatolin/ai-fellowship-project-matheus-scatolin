@@ -32,7 +32,7 @@ python start_api.py
 ### 3. Processar Dataset Completo
 
 ```bash
-# Processar todos os casos do arquivo dataset.json, gerando outputs.json
+# Processar todos os casos do arquivo dataset.json, gerando o arquivo outputs.json
 python extract_from_dataset.py
 ```
 
@@ -51,22 +51,26 @@ python -m pytest unit_tests/test_api_server.py -v
 Durante o desenvolvimento deste sistema, identifiquei e endereçei diversos desafios críticos da extração de dados de PDFs:
 
 ### 🔄 **Desafio 1: Latência e Custos de LLM**
-**Problema**: Chamadas repetidas para LLMs são caras e lentas, especialmente em produção com múltiplos usuários.
+**Problema**: Chamadas repetidas para LLMs são caras e lentas.
 
 **Solução Criativa**: **Sistema de Cache Multi-Layer Inteligente**
 - **L1 (Memória)**: Cache em RAM com LRU para respostas imediatas
 - **L2 (Disco)**: Persistência entre sessões usando DiskCache
 - **L3 (Parcial)**: Cache por campos individuais - permite combinar dados de documentos similares
-- **Resultado**: Redução de 80%+ nas chamadas LLM após warmup inicial
 
 ### 🧠 **Desafio 2: Aprendizado Contínuo sem Supervisão**
 **Problema**: Como fazer o sistema "aprender" padrões de documentos sem intervenção manual constante?
 
 **Solução Criativa**: **Sistema de Templates Auto-Evolutivo**
-- **Pattern Builder**: Identifica padrões estruturais em coordenadas (x,y) dos elementos
+- **Pattern Builder**: Identifica padrões estruturais de diferentes tipos:
+
+      1. Padrões de coordenadas relativas dos elementos (x,y) corrigidos pelo tamanho de página
+      2. Padrões de contexto textual ao redor dos campos (âncoras)
+      3. Padrões de regex para validação de campos (e.g., CNPJ, datas)
+
 - **Structural Matcher**: Encontra documentos similares por layout e conteúdo
-- **Rule Executor**: Cria regras de extração baseadas em posições relativas
-- **Template Orchestrator**: Coordena todo o processo de aprendizado
+- **Rule Executor**: Executa regras de extração baseadas nos padrões aprendidos
+- **Template Orchestrator**: Coordena todo o processo de aprendizado e aplicação de templates
 - **Resultado**: Sistema que melhora automaticamente com cada documento processado
 
 ### 📊 **Desafio 3: Precisão vs Velocidade**
@@ -74,7 +78,7 @@ Durante o desenvolvimento deste sistema, identifiquei e endereçei diversos desa
 
 **Solução Criativa**: **Pipeline de Fallback Inteligente**
 - **Ordem de Prioridade**: Cache → Templates → LLM
-- **Validação de Confiança**: Templates só são usados se tiverem confiança > 50%
+- **Validação de Confiança**: Templates só são usados se tiverem alto grau de confiança
 - **Rich Elements**: Extração de coordenadas precisas com PyMuPDF para melhor matching
 - **Resultado**: Resposta sub-segundo para hits de cache, precisão mantida via LLM fallback
 
@@ -87,26 +91,6 @@ Durante o desenvolvimento deste sistema, identifiquei e endereçei diversos desa
 - **Database SQLite**: Persistência simples mas robusta para templates
 - **API FastAPI**: Interface moderna e auto-documentada
 - **Resultado**: Código limpo, testável e facilmente extensível
-
-### 🔍 **Desafio 5: Diversidade de Formatos de PDF**
-**Problema**: PDFs variam drasticamente em estrutura, qualidade e layout.
-
-**Solução Criativa**: **Processamento Híbrido Multi-Engine**
-- **PyMuPDF**: Extração precisa de coordenadas e elementos estruturados
-- **Unstructured**: Fallback para textos complexos
-- **Rich Elements**: Metadados ricos (posição, tamanho, página) para cada elemento
-- **Structural Matching**: Comparação por similaridade de layout, não apenas texto
-- **Resultado**: Robustez contra variações de formato e qualidade
-
-### ⚡ **Desafio 6: Performance em Produção**
-**Problema**: Sistema precisa ser rápido o suficiente para uso real com múltiplos usuários.
-
-**Solução Criativa**: **Otimizações Inteligentes de Performance**
-- **LRU Cache**: Evicção inteligente baseada em uso recente
-- **Key Generation**: Hashing eficiente de PDFs para identificação rápida
-- **Async Processing**: API não-bloqueante com FastAPI
-- **Memory Management**: Limpeza automática de cache quando necessário
-- **Resultado**: Tempo de resposta consistente mesmo com alta carga
 
 ## 🏗️ Arquitetura do Sistema
 
@@ -123,13 +107,6 @@ O sistema implementa uma **pipeline de extração em múltiplas camadas**:
 ![Arquitetura de Componentes](./images/arquitetura_de_componentes.png)
 *Relacionamentos detalhados entre todas as classes e módulos*
 
-### 🔄 Fluxo da Pipeline
-
-```
-PDF → L1 Cache → L2 Cache → L3 Cache → Template → LLM → Resultado
-       ↓          ↓          ↓          ↓        ↓
-      Hit?       Hit?    Parcial?   Match?   Extração
-```
 
 ## 📁 Estrutura do Projeto
 
