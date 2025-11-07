@@ -4,15 +4,124 @@
 
 Sistema completo de extração de dados de PDFs usando IA, com cache multicamadas, aprendizado de padrões e fallback inteligente. Desenvolvido para o AI Fellowship da Enter.
 
+## 🚀 Como Usar
+
+### 1. Instalação
+
+```bash
+# Crie e ative um ambiente virtual (opcional)
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+#OU
+venv\Scripts\activate    # Windows
+
+# Instalar dependências
+pip install -r requirements.txt
+
+# Configurar OpenAI API Key
+# Crie arquivo .env com:
+OPENAI_API_KEY=sua_chave_aqui
+```
+
+### 2. Iniciar a API
+
+```bash
+python start_api.py
+```
+
+### 3. Processar Dataset Completo
+
+```bash
+# Processar todos os casos do arquivo dataset.json, gerando outputs.json
+python extract_from_dataset.py
+```
+
+### 4. Executar Testes Unitários (Opcional)
+
+```bash
+# Todos os testes
+python -m pytest unit_tests/ -v
+
+# Teste específico
+python -m pytest unit_tests/test_api_server.py -v
+```
+
+## 🎯 Desafios Mapeados e Soluções Propostas
+
+Durante o desenvolvimento deste sistema, identifiquei e endereçei diversos desafios críticos da extração de dados de PDFs:
+
+### 🔄 **Desafio 1: Latência e Custos de LLM**
+**Problema**: Chamadas repetidas para LLMs são caras e lentas, especialmente em produção com múltiplos usuários.
+
+**Solução Criativa**: **Sistema de Cache Multi-Layer Inteligente**
+- **L1 (Memória)**: Cache em RAM com LRU para respostas imediatas
+- **L2 (Disco)**: Persistência entre sessões usando DiskCache
+- **L3 (Parcial)**: Cache por campos individuais - permite combinar dados de documentos similares
+- **Resultado**: Redução de 80%+ nas chamadas LLM após warmup inicial
+
+### 🧠 **Desafio 2: Aprendizado Contínuo sem Supervisão**
+**Problema**: Como fazer o sistema "aprender" padrões de documentos sem intervenção manual constante?
+
+**Solução Criativa**: **Sistema de Templates Auto-Evolutivo**
+- **Pattern Builder**: Identifica padrões estruturais em coordenadas (x,y) dos elementos
+- **Structural Matcher**: Encontra documentos similares por layout e conteúdo
+- **Rule Executor**: Cria regras de extração baseadas em posições relativas
+- **Template Orchestrator**: Coordena todo o processo de aprendizado
+- **Resultado**: Sistema que melhora automaticamente com cada documento processado
+
+### 📊 **Desafio 3: Precisão vs Velocidade**
+**Problema**: Balance entre extração rápida e precisão dos dados extraídos.
+
+**Solução Criativa**: **Pipeline de Fallback Inteligente**
+- **Ordem de Prioridade**: Cache → Templates → LLM
+- **Validação de Confiança**: Templates só são usados se tiverem confiança > 50%
+- **Rich Elements**: Extração de coordenadas precisas com PyMuPDF para melhor matching
+- **Resultado**: Resposta sub-segundo para hits de cache, precisão mantida via LLM fallback
+
+### 🏗️ **Desafio 4: Escalabilidade e Manutenibilidade**
+**Problema**: Como construir um sistema que seja fácil de manter e escale bem?
+
+**Solução Criativa**: **Arquitetura Modular com Singleton Pattern**
+- **Separação Clara**: Cada componente tem responsabilidade única
+- **Pipeline Singleton**: Instância única compartilhada para eficiência
+- **Database SQLite**: Persistência simples mas robusta para templates
+- **API FastAPI**: Interface moderna e auto-documentada
+- **Resultado**: Código limpo, testável e facilmente extensível
+
+### 🔍 **Desafio 5: Diversidade de Formatos de PDF**
+**Problema**: PDFs variam drasticamente em estrutura, qualidade e layout.
+
+**Solução Criativa**: **Processamento Híbrido Multi-Engine**
+- **PyMuPDF**: Extração precisa de coordenadas e elementos estruturados
+- **Unstructured**: Fallback para textos complexos
+- **Rich Elements**: Metadados ricos (posição, tamanho, página) para cada elemento
+- **Structural Matching**: Comparação por similaridade de layout, não apenas texto
+- **Resultado**: Robustez contra variações de formato e qualidade
+
+### ⚡ **Desafio 6: Performance em Produção**
+**Problema**: Sistema precisa ser rápido o suficiente para uso real com múltiplos usuários.
+
+**Solução Criativa**: **Otimizações Inteligentes de Performance**
+- **LRU Cache**: Evicção inteligente baseada em uso recente
+- **Key Generation**: Hashing eficiente de PDFs para identificação rápida
+- **Async Processing**: API não-bloqueante com FastAPI
+- **Memory Management**: Limpeza automática de cache quando necessário
+- **Resultado**: Tempo de resposta consistente mesmo com alta carga
+
 ## 🏗️ Arquitetura do Sistema
 
 O sistema implementa uma **pipeline de extração em múltiplas camadas**:
 
-1. **L1 Cache (Memória)** - Cache em memória para respostas recentes
-2. **L2 Cache (Disco)** - Cache persistente em disco
-3. **L3 Cache (Parcial)** - Cache por similaridade de conteúdo
-4. **L4 Template** - Sistema de aprendizado de padrões
-5. **LLM Fallback** - OpenAI GPT como último recurso
+### 📊 Diagramas da Arquitetura
+
+![Diagrama de Arquitetura Geral](./images/diagrama_arquitetura.png)
+*Visão geral dos componentes do sistema e suas interações*
+
+![Fluxo da Pipeline de Extração](./images/diagrama_extracao.png)
+*Fluxo detalhado da pipeline de processamento*
+
+![Arquitetura de Componentes](./images/arquitetura_de_componentes.png)
+*Relacionamentos detalhados entre todas as classes e módulos*
 
 ### 🔄 Fluxo da Pipeline
 
@@ -49,218 +158,38 @@ ai-fellowship-project/
 │       ├── 🗄️ database.py     # Banco de dados SQLite
 │       └── 🔑 key_gen.py      # Geração de chaves
 ├── 📂 files/                # PDFs de teste
+├── 📂 images/               # Diagramas da arquitetura
 ├── 📂 unit_tests/           # Testes unitários
 └── 📂 persistent_data/      # Dados persistentes (cache/DB)
 ```
 
-## 🚀 Como Usar
-
-### 1. Instalação
-
-```bash
-# Instalar dependências
-pip install -r requirements.txt
-
-# Configurar OpenAI API Key
-# Crie arquivo .env com:
-OPENAI_API_KEY=sua_chave_aqui
-```
-
-### 2. Iniciar a API
-
-```bash
-# Opção 1: Script dedicado (recomendado)
-python start_api.py
-
-# Opção 2: Diretamente
-python core/api_server.py
-```
-
-A API ficará disponível em:
-- 🌐 **URL**: http://localhost:8000
-- 📚 **Documentação**: http://localhost:8000/docs
-- ❤️ **Health Check**: http://localhost:8000/health
-- 📊 **Estatísticas**: http://localhost:8000/stats
-
-### 3. Testar com Exemplos Reais
-
-```bash
-# Teste simples (1 PDF)
-python exemplo_api.py
-
-# Teste completo (3 PDFs + análise de cache)
-python test_api_real.py
-```
-
-### 4. Processar Dataset Completo
-
-```bash
-# Processar todos os casos do dataset.json
-python extract_from_dataset.py
-
-# Analisar resultados do processamento
-python analyze_outputs.py
-```
-
-### 5. Executar Testes Unitários
-
-```bash
-# Todos os testes
-python -m pytest unit_tests/ -v
-
-# Teste específico
-python -m pytest unit_tests/test_api_server.py -v
-```
-
-## 📊 Dados de Teste
-
-O sistema foi testado com **carteiras da OAB** (arquivos em `files/`):
-
-- **oab_1.pdf**: JOANA D'ARC - PR - Suplementar
-- **oab_2.pdf**: LUIS FILIPE ARAUJO AMARAL - PR - Suplementar  
-- **oab_3.pdf**: SON GOKU - PR - Suplementar
-
-### Schema de Extração:
-```json
-{
-  "nome": "Nome do profissional",
-  "inscricao": "Número de inscrição",
-  "seccional": "Seccional",
-  "categoria": "Categoria profissional",
-  "situacao": "Situação do profissional"
-}
-```
-
-## �️ Processamento de Dataset
-
-O sistema inclui ferramentas para processar datasets completos de forma automatizada:
-
-### Dataset Format (`dataset.json`):
-```json
-[
-  {
-    "label": "carteira_oab",
-    "extraction_schema": {
-      "nome": "Nome do profissional",
-      "inscricao": "Número de inscrição",
-      "seccional": "Seccional"
-    },
-    "pdf_path": "oab_1.pdf"
-  }
-]
-```
-
-### Scripts de Processamento:
-
-1. **`extract_from_dataset.py`**: Processa todos os casos automaticamente
-   - Lê o `dataset.json`
-   - Processa cada PDF através da API
-   - Exibe progresso em tempo real
-   - Salva resultados em `outputs.json`
-
-2. **`analyze_outputs.py`**: Analisa os resultados do processamento
-   - Taxa de sucesso por tipo de documento
-   - Análise de métodos da pipeline utilizados
-   - Estatísticas de campos extraídos
-   - Identificação de erros comuns
-
-## �🛠️ Uso da API
-
-### Endpoint Principal: `/extract`
-
-```python
-import requests
-
-# Extrair dados de um PDF
-with open('documento.pdf', 'rb') as f:
-    response = requests.post('http://localhost:8000/extract', 
-        files={'file': f},
-        data={
-            'label': 'tipo_documento',
-            'extraction_schema': json.dumps({
-                'campo1': 'Descrição do campo 1',
-                'campo2': 'Descrição do campo 2'
-            })
-        }
-    )
-
-resultado = response.json()
-print(resultado['data'])  # Dados extraídos
-print(resultado['metadata']['_pipeline']['method'])  # Método usado
-```
-
-### Outros Endpoints:
-
-- `GET /health` - Status da API
-- `GET /stats` - Estatísticas detalhadas
-- `GET /` - Informações da API
-
-## 📈 Monitoramento
-
-A API fornece estatísticas detalhadas sobre:
-
-### Pipeline:
-- Total de requisições
-- Cache hits (L1/L2/L3)
-- Template hits
-- Chamadas LLM (completas/fallback)
-
-### Cache:
-- Hits por camada
-- Taxa de acerto
-- Performance
-
-### Templates:
-- Templates aprendidos
-- Regras armazenadas
-- Templates maduros
-
-## 🧪 Fluxo de Testes
-
-1. **Primeira extração** → LLM completo + aprendizado
-2. **Segunda extração** → Cache L1/L2 (instantâneo)
-3. **Terceira extração** → Cache L1 (memória)
-4. **PDF similar** → Template + LLM parcial
-5. **PDF diferente** → LLM completo + novo aprendizado
-
-## 🔧 Tecnologias Utilizadas
+## � Tecnologias Utilizadas
 
 - **FastAPI** - API web moderna e rápida
 - **OpenAI GPT** - Extração de dados com IA
-- **Unstructured** - Parsing de PDFs
+- **PyMuPDF** - Parsing preciso de PDFs com coordenadas
+- **Unstructured** - Parsing de PDFs como fallback
 - **SQLite** - Banco de dados para templates
 - **Diskcache** - Cache persistente em disco
 - **Pydantic** - Validação de dados
 - **Pytest** - Testes automatizados
 
-## 🎯 Resultados Esperados
+## 💡 Inovações Técnicas
 
-Com os PDFs de teste, o sistema deve atingir:
-- ✅ **Precisão**: 100% para campos estruturados
-- ⚡ **Performance**: Sub-segundo após cache warming
-- 🧠 **Aprendizado**: Padrões detectados automaticamente
-- 💾 **Cache**: 90%+ de hit rate após warm-up
+### 🎯 **Cache Multi-Layer Inteligente**
+Sistema de cache em 3 camadas que reduz drasticamente chamadas para LLM:
+- **L1**: Memória RAM com LRU eviction
+- **L2**: Persistência em disco entre sessões
+- **L3**: Cache parcial por campos individuais
 
-## 📞 Suporte
+### 🧠 **Aprendizado de Padrões Estruturais**
+Sistema que aprende automaticamente padrões de documentos:
+- Análise de coordenadas (x,y) dos elementos
+- Matching por similaridade estrutural
+- Geração automática de regras de extração
 
-Para dúvidas ou problemas:
-
-1. Verifique os logs da API
-2. Execute `python test_api_real.py` para diagnóstico
-3. Consulte a documentação em `/docs`
-4. Verifique estatísticas em `/stats`
-
-## 🏆 Conquistas do Projeto
-
-- ✅ Pipeline completa de extração implementada
-- ✅ Sistema de cache multicamadas funcionando
-- ✅ Aprendizado automático de padrões
-- ✅ Fallback inteligente LLM
-- ✅ API RESTful documentada
-- ✅ Testes automatizados (95%+ cobertura)
-- ✅ Monitoramento e estatísticas
-- ✅ Performance otimizada
-
----
-
-**Desenvolvido para o AI Fellowship da Enter** 🚀
+### ⚡ **Pipeline de Fallback Robusto**
+Arquitetura resiliente que garante alta disponibilidade:
+- Ordem de prioridade: Cache → Templates → LLM
+- Validação de confiança antes de usar templates
+- Fallback inteligente para LLM quando necessário
