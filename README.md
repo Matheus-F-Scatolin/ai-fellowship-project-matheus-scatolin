@@ -1,207 +1,207 @@
-# 🚀 AI Fellowship - Sistema de Extração de Dados de PDFs
+# 🚀 AI Fellowship - PDF Data Extraction System
 
-## 📋 Descrição do Projeto
+## 📋 Project Description
 
-Sistema completo de extração de dados de PDFs usando IA, com cache multicamadas, aprendizado de padrões e fallback inteligente. Desenvolvido para o AI Fellowship da Enter.
+Complete PDF data extraction system using AI, with multi-layer caching, pattern learning, and intelligent fallback. Developed for Enter's AI Fellowship.
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-### 1. Instalação
+### 1. Installation
 
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone https://github.com/Matheus-F-Scatolin/ai-fellowship-project-matheus-scatolin.git
 
-# Acesse o diretório do projeto
+# Access the project directory
 cd ai-fellowship-project-matheus-scatolin
 
-# Crie e ative um ambiente virtual (opcional)
+# Create and activate a virtual environment (optional)
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-#OU
+#OR
 venv\Scripts\activate    # Windows
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Configurar OpenAI API Key
-# Crie arquivo .env com:
-OPENAI_API_KEY=sua_chave_aqui
+# Configure OpenAI API Key
+# Create .env file with:
+OPENAI_API_KEY=your_key_here
 ```
 
-### 2. Iniciar a API
+### 2. Start the API
 
 ```bash
 python start_api.py
 ```
 
-### 3. Usar a Interface Web (UI)
+### 3. Use the Web Interface (UI)
 
-Após iniciar a API, abra o arquivo `frontend/index.html` no seu navegador para usar a interface web:
+After starting the API, open the `frontend/index.html` file in your browser to use the web interface:
 
-1. **Abrir a UI**: Encontre o arquivo `frontend/index.html` e abra no navegador
-2. **Preencher o formulário**:
-   - **Label**: Tipo do documento (ex: `carteira_oab`)
-   - **Schema**: JSON com os campos que deseja extrair
-   - **Arquivo**: Selecione um PDF para processar
-3. **Extrair Dados**: Clique em "Extrair Dados" e veja os resultados formatados
+1. **Open the UI**: Find the `frontend/index.html` file and open it in your browser
+2. **Fill out the form**:
+   - **Label**: Document type (e.g., `carteira_oab`)
+   - **Schema**: JSON with the fields you want to extract
+   - **File**: Select a PDF to process
+3. **Extract Data**: Click "Extract Data" and see the formatted results
 
-A interface é moderna, responsiva e mostra:
-- ✨ Dados extraídos em formato organizado e legível
-- 🔧 Metadados da pipeline (tempo, cache hits, etc.)
+The interface is modern, responsive, and shows:
+- ✨ Extracted data in an organized and readable format
+- 🔧 Pipeline metadata (time, cache hits, etc.)
 
-Se quiser, teste enviar o mesmo PDF várias vezes para ver o efeito do cache! Além disso, depois de ter enviado um mesmo template 2 vezes, remova campos do schema e rode a extração novamente para observar o aprendizado de templates. É possível, também, enviar PDFs similares para ver o matching estrutural em ação.
+If you want, try sending the same PDF multiple times to see the cache effect! Additionally, after sending the same template twice, remove fields from the schema and run the extraction again to observe template learning. You can also send similar PDFs to see structural matching in action.
  
-#### 📷 Screenshots da Interface
+#### 📷 Interface Screenshots
 
-Abaixo estão capturas da interface web para referência:
+Below are captures of the web interface for reference:
 
-![Tela inicial da UI](./images/UI.png)
-*Tela inicial da interface (formulário para extração).*
+![UI Home Screen](./images/UI.png)
+*Interface home screen (extraction form).*
 
-![Resultado exibido pela UI](./images/UI_resultado.png)
-*Exemplo de resultado formatado exibido pela interface.*
+![UI Result Display](./images/UI_resultado.png)
+*Example of formatted result displayed by the interface.*
 
-### 4. Processar Dataset Completo
-Colocar o arquivo dataset.json com os paths, schemas e labels na raiz do projeto (substituir o existente) e os pdfs na pasta files/. Depois, executar o script para processar todos os PDFs:
+### 4. Process Full Dataset
+Place the dataset.json file with paths, schemas, and labels in the project root (replace the existing one) and the PDFs in the files/ folder. Then, run the script to process all PDFs:
 ```bash
-# Abrir outro terminal (e ativar o ambiente virtual) e executar:
+# Open another terminal (and activate the virtual environment) and run:
 python extract_from_dataset.py
 ```
-Após isso, os resultados aparecerão no terminal um a um e serão salvos em outputs.json.
+After that, the results will appear in the terminal one by one and will be saved in outputs.json.
 
-### 5. Executar Testes Unitários (Opcional)
+### 5. Run Unit Tests (Optional)
 
 ```bash
-# Todos os testes
+# All tests
 python -m pytest unit_tests/ -v
 
-# Teste específico
+# Specific test
 python -m pytest unit_tests/test_pattern_builder.py -v
 ```
 
-## 🎯 Desafios Mapeados e Soluções Propostas
+## 🎯 Mapped Challenges and Proposed Solutions
 
-Durante o desenvolvimento deste sistema, identifiquei e endereçei diversos desafios críticos da extração de dados de PDFs:
+During the development of this system, I identified and addressed several critical challenges in PDF data extraction:
 
-### 🔄 **Desafio 1: Latência e Custos de LLM**
-**Problema**: Chamadas repetidas para LLMs são caras e lentas.
+### 🔄 **Challenge 1: LLM Latency and Costs**
+**Problem**: Repeated calls to LLMs are expensive and slow.
 
-**Solução Criativa**: **Sistema de Cache Multi-Layer Inteligente**
-- **L1 (Memória)**: Cache em RAM com LRU para respostas imediatas
-- **L2 (Disco)**: Persistência entre sessões usando DiskCache
-- **L3 (Parcial)**: Cache por campos individuais - permite combinar dados de documentos similares
+**Creative Solution**: **Intelligent Multi-Layer Cache System**
+- **L1 (Memory)**: RAM cache with LRU for immediate responses
+- **L2 (Disk)**: Persistence between sessions using DiskCache
+- **L3 (Partial)**: Cache by individual fields - allows combining data from similar documents
 
-### 🧠 **Desafio 2: Aprendizado Contínuo sem Supervisão**
-**Problema**: Como fazer o sistema "aprender" padrões de documentos sem intervenção manual constante?
+### 🧠 **Challenge 2: Continuous Unsupervised Learning**
+**Problem**: How to make the system "learn" document patterns without constant manual intervention?
 
-**Solução Criativa**: **Sistema de Templates Auto-Evolutivo**
-- **Pattern Builder**: Identifica padrões estruturais de diferentes tipos:
+**Creative Solution**: **Self-Evolving Template System**
+- **Pattern Builder**: Identifies structural patterns of different types:
 
-      1. Padrões de coordenadas relativas dos elementos (x,y) corrigidos pelo tamanho de página
-      2. Padrões de contexto textual ao redor dos campos (âncoras)
-      3. Padrões de regex para validação de campos (e.g., CNPJ, datas)
+      1. Relative coordinate patterns of elements (x,y) corrected by page size
+      2. Textual context patterns around fields (anchors)
+      3. Regex patterns for field validation (e.g., CNPJ, dates)
 
-- **Structural Matcher**: Encontra documentos similares por layout e conteúdo
-- **Rule Executor**: Executa regras de extração baseadas nos padrões aprendidos
-- **Template Orchestrator**: Coordena todo o processo de aprendizado e aplicação de templates
-- **Resultado**: Sistema que melhora automaticamente com cada documento processado
+- **Structural Matcher**: Finds similar documents by layout and content
+- **Rule Executor**: Executes extraction rules based on learned patterns
+- **Template Orchestrator**: Coordinates the entire process of learning and applying templates
+- **Result**: System that automatically improves with each processed document
 
-### 📊 **Desafio 3: Precisão vs Velocidade**
-**Problema**: Balance entre extração rápida e precisão dos dados extraídos.
+### 📊 **Challenge 3: Accuracy vs Speed**
+**Problem**: Balance between fast extraction and accuracy of extracted data.
 
-**Solução Criativa**: **Pipeline de Fallback Inteligente**
-- **Ordem de Prioridade**: Cache → Templates → LLM
-- **Validação de Confiança**: Templates só são usados se tiverem alto grau de confiança
-- **Rich Elements**: Extração de coordenadas precisas com PyMuPDF para melhor matching
-- **Resultado**: Resposta sub-segundo para hits de cache, precisão mantida via LLM fallback
+**Creative Solution**: **Intelligent Fallback Pipeline**
+- **Priority Order**: Cache → Templates → LLM
+- **Confidence Validation**: Templates are only used if they have a high degree of confidence
+- **Rich Elements**: Precise coordinate extraction with PyMuPDF for better matching
+- **Result**: Sub-second response for cache hits, accuracy maintained via LLM fallback
 
-### 🏗️ **Desafio 4: Escalabilidade e Manutenibilidade**
-**Problema**: Como construir um sistema que seja fácil de manter e escale bem?
+### 🏗️ **Challenge 4: Scalability and Maintainability**
+**Problem**: How to build a system that is easy to maintain and scales well?
 
-**Solução Criativa**: **Arquitetura Modular com Singleton Pattern**
-- **Separação Clara**: Cada componente tem responsabilidade única
-- **Pipeline Singleton**: Instância única compartilhada para eficiência
-- **Database SQLite**: Persistência simples mas robusta para templates
-- **API FastAPI**: Interface moderna e auto-documentada
-- **Resultado**: Código limpo, testável e facilmente extensível
+**Creative Solution**: **Modular Architecture with Singleton Pattern**
+- **Clear Separation**: Each component has a single responsibility
+- **Pipeline Singleton**: Single shared instance for efficiency
+- **SQLite Database**: Simple but robust persistence for templates
+- **FastAPI API**: Modern and self-documented interface
+- **Result**: Clean, testable, and easily extensible code
 
-## 🏗️ Arquitetura do Sistema
+## 🏗️ System Architecture
 
-O sistema implementa uma **pipeline de extração em múltiplas camadas**:
+The system implements a **multi-layer extraction pipeline**:
 
-### 📊 Diagramas da Arquitetura
+### 📊 Architecture Diagrams
 
-![Diagrama de Arquitetura Geral](./images/diagrama_arquitetura.png)
-*Visão geral dos componentes do sistema e suas interações*
+![General Architecture Diagram](./images/diagrama_arquitetura.png)
+*Overview of system components and their interactions*
 
-![Fluxo da Pipeline de Extração](./images/diagrama_extracao.png)
-*Fluxo detalhado da pipeline de processamento*
+![Extraction Pipeline Flow](./images/diagrama_extracao.png)
+*Detailed flow of the processing pipeline*
 
-![Arquitetura de Componentes](./images/arquitetura_de_componentes.png)
-*Relacionamentos detalhados entre todas as classes e módulos*
+![Component Architecture](./images/arquitetura_de_componentes.png)
+*Detailed relationships between all classes and modules*
 
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 ai-fellowship-project/
 ├── 📄 README.md
 ├── 📦 requirements.txt
-├── 🔧 start_api.py          # Script para iniciar a API
-├── 📖 extract_from_dataset.py # Processa dataset.json completo
-├── 📊 dataset.json          # Dataset com casos de teste
-├── 📄 outputs.json          # Resultados do processamento (gerado)
+├── 🔧 start_api.py          # Script to start the API
+├── 📖 extract_from_dataset.py # Processes full dataset.json
+├── 📊 dataset.json          # Dataset with test cases
+├── 📄 outputs.json          # Processing results (generated)
 ├── 📂 core/
-│   ├── 🌐 api_server.py        # API FastAPI principal
+│   ├── 🌐 api_server.py        # Main FastAPI API
 │   ├── 📂 connectors/
-│   │   └── 🤖 llm_connector.py    # Integração com OpenAI
+│   │   └── 🤖 llm_connector.py    # OpenAI integration
 │   ├── 📂 learning/
-│   │   ├── 🧠 pattern_builder.py       # Extração de padrões
-│   │   ├── ⚡ rule_executor.py         # Execução de regras
-│   │   ├── 🎭 template_orchestrator.py # Orquestração de templates
-│   │   └── 🔍 struct_matcher.py       # Matching estrutural
+│   │   ├── 🧠 pattern_builder.py       # Pattern extraction
+│   │   ├── ⚡ rule_executor.py         # Rule execution
+│   │   ├── 🎭 template_orchestrator.py # Template orchestration
+│   │   └── 🔍 struct_matcher.py       # Structural matching
 │   └── 📂 store/
-│       ├── 💾 caching.py      # Sistema de cache
-│       ├── 🗄️ database.py     # Banco de dados SQLite
-│       └── 🔑 key_gen.py      # Geração de chaves
-├── 📂 frontend/             # Interface web para usuário
-│   ├── 🌐 index.html        # Página principal da UI
-│   ├── 🎨 style.css         # Estilos e design responsivo
-│   └── ⚡ app.js            # Lógica JavaScript da interface
-├── 📂 files/                # PDFs de teste
-├── 📂 images/               # Diagramas da arquitetura
-├── 📂 unit_tests/           # Testes unitários
-└── 📂 persistent_data/      # Dados persistentes (cache/DB)
+│       ├── 💾 caching.py      # Cache system
+│       ├── 🗄️ database.py     # SQLite database
+│       └── 🔑 key_gen.py      # Key generation
+├── 📂 frontend/             # User web interface
+│   ├── 🌐 index.html        # Main UI page
+│   ├── 🎨 style.css         # Styles and responsive design
+│   └── ⚡ app.js            # Interface JavaScript logic
+├── 📂 files/                # Test PDFs
+├── 📂 images/               # Architecture diagrams
+├── 📂 unit_tests/           # Unit tests
+└── 📂 persistent_data/      # Persistent data (cache/DB)
 ```
 
-## ⚙️ Tecnologias Utilizadas
+## ⚙️ Technologies Used
 
-- **FastAPI** - API web moderna e rápida
-- **OpenAI GPT** - Extração de dados com IA
-- **PyMuPDF** - Parsing preciso de PDFs com coordenadas
-- **SQLite** - Banco de dados para templates
-- **Diskcache** - Cache persistente em disco
-- **Pydantic** - Validação de dados
-- **Pytest** - Testes automatizados
-- **HTML/CSS/JavaScript** - Construção da interface web responsiva
+- **FastAPI** - Modern and fast web API
+- **OpenAI GPT** - AI-powered data extraction
+- **PyMuPDF** - Precise PDF parsing with coordinates
+- **SQLite** - Database for templates
+- **Diskcache** - Persistent disk cache
+- **Pydantic** - Data validation
+- **Pytest** - Automated testing
+- **HTML/CSS/JavaScript** - Responsive web interface construction
 
-## 💡 Inovações Técnicas
+## 💡 Technical Innovations
 
-### 🎯 **Cache Multi-Layer Inteligente**
-Sistema de cache em 3 camadas que reduz chamadas para LLM:
-- **L1**: Memória RAM com LRU eviction
-- **L2**: Persistência em disco entre sessões
-- **L3**: Cache parcial por campos individuais
+### 🎯 **Intelligent Multi-Layer Cache**
+3-layer cache system that reduces LLM calls:
+- **L1**: RAM memory with LRU eviction
+- **L2**: Disk persistence between sessions
+- **L3**: Partial cache by individual fields
 
-### 🧠 **Aprendizado de Padrões Estruturais**
-Sistema que aprende automaticamente padrões de documentos:
-- Análise de coordenadas (x,y) dos elementos
-- Matching por similaridade estrutural
-- Geração automática de regras de extração
+### 🧠 **Structural Pattern Learning**
+System that automatically learns document patterns:
+- Analysis of element coordinates (x,y)
+- Matching by structural similarity
+- Automatic generation of extraction rules
 
-### ⚡ **Pipeline de Fallback Robusto**
-Arquitetura resiliente que garante alta disponibilidade:
-- Ordem de prioridade: Cache → Templates → LLM
-- Validação de confiança antes de usar templates
-- Fallback inteligente para LLM quando necessário
+### ⚡ **Robust Fallback Pipeline**
+Resilient architecture that ensures high availability:
+- Priority order: Cache → Templates → LLM
+- Confidence validation before using templates
+- Intelligent fallback to LLM when necessary
